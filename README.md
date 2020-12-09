@@ -46,14 +46,15 @@ I don't care, I consider the patch in the public domain(and/or all other license
 
 ## Effects
 
-Effects are same as with prelockd:
+The effects are the same as with [prelockd](https://github.com/hakavlad/prelockd) but can be achieved by reserving less memory size:
 - OOM killer comes faster (especially with noswap).
 - Fast system reclaiming after OOM.
 - Improved system responsiveness under low-memory conditions.
 
 ## Known problems
 
-`MemAvailable` may be calculated incorrectly (reserved `vm.unevictable_activefile_kbytes` value cannot be reclaimed). Don't set too high `vm.unevictable_activefile_kbytes` value.
+- `MemAvailable` may be calculated incorrectly (reserved `vm.unevictable_activefile_kbytes` value cannot be reclaimed);
+- Setting too high `vm.unevictable_activefile_kbytes` can lead to unwanted and too aggressive swapping out. Don't set too high `vm.unevictable_activefile_kbytes` value.
 
 ## See also
 
