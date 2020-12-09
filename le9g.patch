@@ -1,0 +1,60 @@
+crystal ball https://lkml.org/lkml/2019/8/12/163
+TODO: Use a sysctl knob called crystal ball to set minimum Active(file) to never be evicted.
+
+Patch inspired by Michal Hocko 's "Have a look at get_scan_count" from https://lkml.org/lkml/2019/8/12/163 and the idea in this patch was suggested to me a while ago by Mikko Rantalainen here: https://stackoverflow.com/questions/52067753/how-to-keep-executable-code-in-memory-even-under-memory-pressure-in-linux#comment95017646_52067753
+
+Basically, we don't evict Active(file) pages if they are under 256MiB (the default crystal ball value - not yet implemented) even when under memory pressure.
+This should get rid of most/all disk thrashing. To be tested on 5.3.0-rc4-gd45331b00ddb  yep it works!
+
+No swap and no freeze:
+$ memfreeze
+workingset_nodes 1529
+workingset_refault 59958
+workingset_activate 37435
+workingset_restore 9885
+workingset_nodereclaim 11
+Will alloc: 13971696 kB for each of the 2 concurrent threads.
+MemTotal before: 15715256 kB
+stress: info: [20184] dispatching hogs: 0 cpu, 0 io, 2 vm, 0 hdd
+stress: FAIL: [20184] (415) <-- worker 20186 got signal 9
+stress: WARN: [20184] (417) now reaping child worker processes
+stress: FAIL: [20184] (421) kill error: No such process
+stress: FAIL: [20184] (451) failed run completed in 120s
+
+real	2m0.152s
+user	1m52.255s
+sys	0m12.581s
+exit code: 1
+MemTotal afterwards: 15715256 kB
+workingset_nodes 1987
+workingset_refault 71803
+workingset_activate 48562
+workingset_restore 11015
+workingset_nodereclaim 11
+
+`memfreeze` script is:
+timeout=120s threads=2 alloc="$(awk '/MemAvailable/{printf "%d\n", $2 + 4000;}' < /proc/meminfo)"; echo "Will alloc: $alloc kB for each of the $threads concurrent threads."; echo "MemTotal before: $(awk '/MemTotal/{printf "%d kB\n", $2;}' < /proc/meminfo)";time stress --vm-bytes "${alloc}k" --vm-keep -m $threads --timeout $timeout ; echo "exit code: $?" ; awk '/MemTotal/{printf "MemTotal afterwards: %d kB\n", $2;}' < /proc/meminfo
+
+
+Now I've to somehow disable oom-killer or something! or else memfreeze2 will cause OOM-killer to kill Xorg but this is completely unrelated to this patch/change, `memfreeze2` is:
+time stress -m 3000 --vm-bytes 10M --timeout 50                                 
+
+
+diff --git a/mm/vmscan.c b/mm/vmscan.c
+index dbdc46a84f63..7a0b7e32ff45 100644
+--- a/mm/vmscan.c
++++ b/mm/vmscan.c
+@@ -2445,6 +2445,13 @@ static void get_scan_count(struct lruvec *lruvec, struct mem_cgroup *memcg,
+ 			BUG();
+ 		}
+ 
++    if (NR_ACTIVE_FILE == lru) {
++      long long kib_active_file_now=global_node_page_state(NR_ACTIVE_FILE) * MAX_NR_ZONES;
++      if (kib_active_file_now <= 256*1024) {
++        nr[lru] = 0; //don't reclaim any Active(file) (see /proc/meminfo) if they are under 256MiB
++        continue;
++      }
++    }
+ 		*lru_pages += size;
+ 		nr[lru] = scan;
+ 	}

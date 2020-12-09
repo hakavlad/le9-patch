@@ -1,0 +1,85 @@
+revision 3
+preliminary patch to avoid disk thrashing (constant reading) under memory pressure before OOM-killer triggers
+more info: https://gist.github.com/constantoverride/84eba764f487049ed642eb2111a20830
+
+diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+index 32699b2..7636498 100644
+--- a/include/linux/mmzone.h
++++ b/include/linux/mmzone.h
+@@ -208,7 +208,7 @@ enum lru_list {
+ 
+ #define for_each_lru(lru) for (lru = 0; lru < NR_LRU_LISTS; lru++)
+ 
+-#define for_each_evictable_lru(lru) for (lru = 0; lru <= LRU_ACTIVE_FILE; lru++)
++#define for_each_evictable_lru(lru) for (lru = 0; lru <= LRU_INACTIVE_FILE; lru++)
+ 
+ static inline int is_file_lru(enum lru_list lru)
+ {
+diff --git a/mm/vmscan.c b/mm/vmscan.c
+index 03822f8..1f3ffb5 100644
+--- a/mm/vmscan.c
++++ b/mm/vmscan.c
+@@ -2086,9 +2086,9 @@ static unsigned long shrink_list(enum lr
+ 				 struct scan_control *sc)
+ {
+ 	if (is_active_lru(lru)) {
+-		if (inactive_list_is_low(lruvec, is_file_lru(lru),
+-					 memcg, sc, true))
+-			shrink_active_list(nr_to_scan, lruvec, sc, lru);
++		//if (inactive_list_is_low(lruvec, is_file_lru(lru),
++		//			 memcg, sc, true))
++		//	shrink_active_list(nr_to_scan, lruvec, sc, lru);
+ 		return 0;
+ 	}
+ 
+@@ -2234,7 +2234,7 @@ static void get_scan_count(struct lruvec *lruvec, struct mem_cgroup *memcg,
+ 
+ 	anon  = lruvec_lru_size(lruvec, LRU_ACTIVE_ANON, MAX_NR_ZONES) +
+ 		lruvec_lru_size(lruvec, LRU_INACTIVE_ANON, MAX_NR_ZONES);
+-	file  = lruvec_lru_size(lruvec, LRU_ACTIVE_FILE, MAX_NR_ZONES) +
++	file  = //lruvec_lru_size(lruvec, LRU_ACTIVE_FILE, MAX_NR_ZONES) +
+ 		lruvec_lru_size(lruvec, LRU_INACTIVE_FILE, MAX_NR_ZONES);
+ 
+ 	spin_lock_irq(&pgdat->lru_lock);
+@@ -2345,7 +2345,7 @@ static void shrink_node_memcg(struct pglist_data *pgdat, struct mem_cgroup *memc
+ 			 sc->priority == DEF_PRIORITY);
+ 
+ 	blk_start_plug(&plug);
+-	while (nr[LRU_INACTIVE_ANON] || nr[LRU_ACTIVE_FILE] ||
++	while (nr[LRU_INACTIVE_ANON] || //nr[LRU_ACTIVE_FILE] ||
+ 					nr[LRU_INACTIVE_FILE]) {
+ 		unsigned long nr_anon, nr_file, percentage;
+ 		unsigned long nr_scanned;
+@@ -2372,7 +2372,8 @@ static void shrink_node_memcg(struct pglist_data *pgdat, struct mem_cgroup *memc
+ 		 * stop reclaiming one LRU and reduce the amount scanning
+ 		 * proportional to the original scan target.
+ 		 */
+-		nr_file = nr[LRU_INACTIVE_FILE] + nr[LRU_ACTIVE_FILE];
++		nr_file = nr[LRU_INACTIVE_FILE] //+ nr[LRU_ACTIVE_FILE]
++			;
+ 		nr_anon = nr[LRU_INACTIVE_ANON] + nr[LRU_ACTIVE_ANON];
+ 
+ 		/*
+@@ -2391,7 +2392,8 @@ static void shrink_node_memcg(struct pglist_data *pgdat, struct mem_cgroup *memc
+ 			percentage = nr_anon * 100 / scan_target;
+ 		} else {
+ 			unsigned long scan_target = targets[LRU_INACTIVE_FILE] +
+-						targets[LRU_ACTIVE_FILE] + 1;
++						//targets[LRU_ACTIVE_FILE] + 
++						1;
+ 			lru = LRU_FILE;
+ 			percentage = nr_file * 100 / scan_target;
+ 		}
+@@ -2409,10 +2411,12 @@ static void shrink_node_memcg(struct pgl
+ 		nr[lru] = targets[lru] * (100 - percentage) / 100;
+ 		nr[lru] -= min(nr[lru], nr_scanned);
+ 
++		if (LRU_FILE != lru) { //avoid this block for LRU_ACTIVE_FILE
+ 		lru += LRU_ACTIVE;
+ 		nr_scanned = targets[lru] - nr[lru];
+ 		nr[lru] = targets[lru] * (100 - percentage) / 100;
+ 		nr[lru] -= min(nr[lru], nr_scanned);
++		}
+ 
+ 		scan_adjusted = true;
+ 	}

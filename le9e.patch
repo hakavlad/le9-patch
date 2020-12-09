@@ -1,0 +1,153 @@
+updated for kernel 5.1.0-rc5(almost rc6) commit 9e5de623a0cb9374bdcc73c0c098818f0d7ab7e9
+
+this le9e.patch is just le9d.patch with an added .config option 
+Warning: Active(file) value got to 7306716 during the compile/install of the kernel! that is, without using drop_caches at all! I dno why I remember it never going over 4G maybe it was with a prev. patch?!
+ With this option unset(# CONFIG_LE9D_PATCH is not set), it got to 5770568 kB !
+
+from: https://github.com/CconEstaNntoSverOriRdeED/qubes-linux-kernel/blob/bbecb78ff38770367b0f1d18a1c860db401322c7/patches.addon/le9d.patch#L1
+Warning: you need to run `echo 1 | sudo tee /proc/sys/vm/drop_caches` periodically, or else you can run out of memory when you wouldn't have otherwise without this patch. But hey at least it doesn't freakin' freeze/crash your system!
+So you can expect Xorg and xfwm4 to get killed due to some filesystem caching(eg. during `sha256sum -c`) or during firefox compilation with output in /tmp (tmpfs) filled with 12-13G out of 16G total computer RAM.
+
+I'm personally running on xfce startup: xfce4-terminal -x freepagecachepages_automatically 1000000
+
+TODO: use this vmstat number(which is very different than /proc/meminfo one! eg. Active(file):     123524 kB):
+$ grep nr_active_file /proc/vmstat
+nr_active_file 29803
+ok Active(file) is actually 4 times more than nr_active_file (due to a << (PAGE_SHIFT - 10) which is <<2  see: fs/proc/meminfo.c func. show_val_kb )
+
+WARNING: do NOT use this patch with swap enabled! because people who did experienced more disk thrashing and higher swap usage and quicker OOM-kills, as reported here: https://gist.github.com/CconEstaNntoSverOriRdeED/84eba764f487049ed642eb2111a20830#gistcomment-2779445
+I always have swap disabled! # CONFIG_SWAP is not set
+also perhaps sysctl settings matter? here were mine: https://github.com/CExftNSroxORgpxED/a3/tree/cd4a22fb54095fdf665c743c4c3476b433768209/system/Z575/OSes/3archlinux/on_baremetal/filesystem_now/archlinux/etc/sysctl.d
+
+revision 3
+preliminary patch to avoid disk thrashing (constant reading) under memory pressure before OOM-killer triggers
+more info: https://gist.github.com/CconEstaNntoSverOriRdeED/84eba764f487049ed642eb2111a20830
+
+diff --git a/mm/Kconfig b/mm/Kconfig
+index 25c71eb8a7db..abbda4e61514 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -1,6 +1,25 @@
+ 
+ menu "Memory Management options"
+ 
++config LE9D_PATCH
++	bool "Keep Active(file) pages in RAM even during low memory situations!" if EXPERT
++	default n
++	depends on !SWAP && IKCONFIG_PROC && EXPERT
++	help
++	  Keep Active(file) pages in RAM so as to avoid system freeze due to the
++	  disk thrashing(disk reading only) that occurrs because running 
++	  executables's code is being evicted during low-mem conditions which is
++	  why it also prevent oom-killer from triggering until 10s of minutes later.
++	  This allows scripts to check whether this patch was applied by looking 
++	  through /proc/config.gz
++	  Can't see/use this option when you have CONFIG_SWAP enabled 
++	  or IKCONFIG_PROC not set.
++	  Using this le9d.patch requires you to periodically do something like 
++	  'echo 1 | sudo tee /proc/sys/vm/drop_caches' 
++	  otherwise you risk running out of memory and oom-killer triggering for 
++	  programs like Xorg or chromium.
++
++
+ config SELECT_MEMORY_MODEL
+ 	def_bool y
+ 	depends on ARCH_SELECT_MEMORY_MODEL
+diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+index 842f9189537b..8a594b83148d 100644
+--- a/include/linux/mmzone.h
++++ b/include/linux/mmzone.h
+@@ -210,7 +210,11 @@ enum lru_list {
+ 
+ #define for_each_lru(lru) for (lru = 0; lru < NR_LRU_LISTS; lru++)
+ 
+-#define for_each_evictable_lru(lru) for (lru = 0; lru <= LRU_ACTIVE_FILE; lru++)
++#ifdef CONFIG_LE9D_PATCH
++  #define for_each_evictable_lru(lru) for (lru = 0; lru <= LRU_INACTIVE_FILE; lru++)
++#else //original
++  #define for_each_evictable_lru(lru) for (lru = 0; lru <= LRU_ACTIVE_FILE; lru++)
++#endif
+ 
+ static inline int is_file_lru(enum lru_list lru)
+ {
+diff --git a/mm/vmscan.c b/mm/vmscan.c
+index e979705bbf32..2eaaec24cba3 100644
+--- a/mm/vmscan.c
++++ b/mm/vmscan.c
+@@ -2225,8 +2225,10 @@ static unsigned long shrink_list(enum lru_list lru, unsigned long nr_to_scan,
+ 				 struct lruvec *lruvec, struct scan_control *sc)
+ {
+ 	if (is_active_lru(lru)) {
++#ifndef CONFIG_LE9D_PATCH
+ 		if (inactive_list_is_low(lruvec, is_file_lru(lru), sc, true))
+ 			shrink_active_list(nr_to_scan, lruvec, sc, lru);
++#endif
+ 		return 0;
+ 	}
+ 
+@@ -2402,7 +2404,10 @@ static void get_scan_count(struct lruvec *lruvec, struct mem_cgroup *memcg,
+ 
+ 	anon  = lruvec_lru_size(lruvec, LRU_ACTIVE_ANON, MAX_NR_ZONES) +
+ 		lruvec_lru_size(lruvec, LRU_INACTIVE_ANON, MAX_NR_ZONES);
+-	file  = lruvec_lru_size(lruvec, LRU_ACTIVE_FILE, MAX_NR_ZONES) +
++	file  = 
++#ifndef CONFIG_LE9D_PATCH
++    lruvec_lru_size(lruvec, LRU_ACTIVE_FILE, MAX_NR_ZONES) +
++#endif
+ 		lruvec_lru_size(lruvec, LRU_INACTIVE_FILE, MAX_NR_ZONES);
+ 
+ 	spin_lock_irq(&pgdat->lru_lock);
+@@ -2515,7 +2520,10 @@ static void shrink_node_memcg(struct pglist_data *pgdat, struct mem_cgroup *memc
+ 			 sc->priority == DEF_PRIORITY);
+ 
+ 	blk_start_plug(&plug);
+-	while (nr[LRU_INACTIVE_ANON] || nr[LRU_ACTIVE_FILE] ||
++	while (nr[LRU_INACTIVE_ANON] || 
++#ifndef CONFIG_LE9D_PATCH
++      nr[LRU_ACTIVE_FILE] ||
++#endif
+ 					nr[LRU_INACTIVE_FILE]) {
+ 		unsigned long nr_anon, nr_file, percentage;
+ 		unsigned long nr_scanned;
+@@ -2542,7 +2550,11 @@ static void shrink_node_memcg(struct pglist_data *pgdat, struct mem_cgroup *memc
+ 		 * stop reclaiming one LRU and reduce the amount scanning
+ 		 * proportional to the original scan target.
+ 		 */
+-		nr_file = nr[LRU_INACTIVE_FILE] + nr[LRU_ACTIVE_FILE];
++		nr_file = nr[LRU_INACTIVE_FILE] 
++#ifndef CONFIG_LE9D_PATCH
++      + nr[LRU_ACTIVE_FILE]
++#endif
++			;
+ 		nr_anon = nr[LRU_INACTIVE_ANON] + nr[LRU_ACTIVE_ANON];
+ 
+ 		/*
+@@ -2561,7 +2573,10 @@ static void shrink_node_memcg(struct pglist_data *pgdat, struct mem_cgroup *memc
+ 			percentage = nr_anon * 100 / scan_target;
+ 		} else {
+ 			unsigned long scan_target = targets[LRU_INACTIVE_FILE] +
+-						targets[LRU_ACTIVE_FILE] + 1;
++#ifndef CONFIG_LE9D_PATCH
++						targets[LRU_ACTIVE_FILE] +
++#endif
++						1;
+ 			lru = LRU_FILE;
+ 			percentage = nr_file * 100 / scan_target;
+ 		}
+@@ -2579,10 +2594,16 @@ static void shrink_node_memcg(struct pglist_data *pgdat, struct mem_cgroup *memc
+ 		nr[lru] = targets[lru] * (100 - percentage) / 100;
+ 		nr[lru] -= min(nr[lru], nr_scanned);
+ 
++#ifdef CONFIG_LE9D_PATCH
++		if (LRU_FILE != lru) { //avoid this block for LRU_ACTIVE_FILE
++#endif
+ 		lru += LRU_ACTIVE;
+ 		nr_scanned = targets[lru] - nr[lru];
+ 		nr[lru] = targets[lru] * (100 - percentage) / 100;
+ 		nr[lru] -= min(nr[lru], nr_scanned);
++#ifdef CONFIG_LE9D_PATCH
++		}
++#endif
+ 
+ 		scan_adjusted = true;
+ 	}

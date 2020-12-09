@@ -1,0 +1,74 @@
+#!/bin/bash
+
+#run this multiple times consecutively, but not at the same time ie. not in parallel.
+
+#this should freeze i87k for about 1-2 seconds(actually 5 seconds - try running top of watch -n1 -d cat /proc/meminfo) while running out of memory temporarily just before OOM triggers and kills one of the threads:
+#^ old comments
+
+uname -a
+
+#Ensure watchers are running:
+ensure_this_runs_already() {
+  local cmdtorun="$*"
+  if ! pgrep --full "^${cmdtorun}$" >/dev/null; then
+    if ! pgrep --full "^bash -c ${cmdtorun}$" >/dev/null; then
+      #shellcheck disable=SC2086
+      #xfce4-terminal -x $cmdtorun  #XXX: unquoted! else it will fail to launch!
+      xfce4-terminal -x bash -c "$cmdtorun"  #XXX: need 'bash -c' to be able to use | pipes
+    fi
+  fi
+}
+ensure_this_runs_already "watch -n.1 -d cat /proc/meminfo"
+#ensure_this_runs_already watch -n.1 -d cat /proc/meminfo #yes this works too! I even tested it.
+ensure_this_runs_already "top -d 0.5"
+#shellcheck disable=SC2016
+ensure_this_runs_already 'sudo iotop -d 5 -o -b | sed --unbuffered -re "s/^(Actual DISK READ:)/`tput setab 1`\1`tput sgr0`/"'
+#exit 1
+
+
+#XXX tested on i87k host
+systemctl --user stop psd #otherwise have to manually rename 2+1 profile dirs from *-backup to * after the system crashes(and it does with 5.3.0-rc4-gd45331b00ddb kernel, not with 5.2.0 (git) though, or 5.2.4 (stable) )
+if test "${0##*/}" == "memfreeze2"; then
+  variant=2
+elif test "${0##*/}" == "memfreeze3"; then
+  variant=3
+else
+  variant=1
+fi
+echo "!! Using memfreeze variant '$variant'"
+
+if test "$1" != "keepswap"; then
+  echo "! swapoff first"
+  sudo swapoff -a
+  threads=2
+  timeout=10s
+else
+  threads=6
+  timeout=30s
+fi
+sync #because possibly crash! in fact guaranteed crash in 5.3.0-rc4-gd45331b00ddb even without any le*.patch-es but only on i915 computer(s) eg. i87k, not Z575!
+
+#Don't list all tasks because it causes tons of writes(for variant 2 & 3) via journald:
+sudo sysctl -w vm.oom_dump_tasks=0
+
+
+if test "$variant" == "1"; then
+  #this is a remnant from when I've tested this on QubesOS
+  alloc="$(awk '/MemAvailable/{printf "%d\n", $2 + 4000;}' < /proc/meminfo)"
+  echo "Will alloc: $alloc kB for each of the $threads concurrent threads."
+  echo "MemTotal before: $(awk '/MemTotal/{printf "%d kB\n", $2;}' < /proc/meminfo)"
+  time stress --vm-bytes "${alloc}k" --vm-keep -m $threads --timeout $timeout
+  echo "exit code: $?"
+  awk '/MemTotal/{printf "MemTotal afterwards: %d kB\n", $2;}' < /proc/meminfo
+elif test "$variant" == "2"; then
+  time stress -m 220 --vm-bytes 10000000000 --timeout 20
+elif test "$variant" == "3"; then
+  #XXX (if not using choom) say bye bye to Xorg, courtesy of kernel's OOM-killer FIXME: somehow disable oom-killer or what?!
+  time choom -n 900 -- stress -m 3000 --vm-bytes 10M --timeout 50
+  #^ choom source: https://www.phoronix.com/forums/forum/phoronix/general-discussion/1119410-fedora-developers-discuss-ways-to-improve-linux-interactivity-in-low-memory-situations/page6#post1119618
+  #ok this choom works well to avoid killing Xorg, and still causes freeze(of about 5-10 sec tops) even with le9h.patch and 200k vm.unevictable_activefile_kbytes because for some reason it can still go under that value but apparently not by much, like 20-30M! however inactive file goes down to zero, I wonder if I should keep this over the threshold too. FIXME:
+  #ok with le9i.patch and 300k for active and 64M for inactive(due to a patch bug they aren't both 300k), looks like the freezes are caused by disk writes only - probably dmesg/journald flushing as a result of so many dmesg messages about OOM killing processes.
+  #07sept2019: turned off journald storage(Storage=none in /etc/systemd/journald.conf) and the freeze doesn't really happen on Z575, but the `watch -n0.1 -d cat /proc/meminfo` process in xfce4-terminal window does pause for a few seconds tops; but mouse moves... the remaining freezes are likely due to sylog or oom killing thousands of processes at this point.
+else
+  echo "!! memfreeze variant not implemented"
+fi
