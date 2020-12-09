@@ -55,6 +55,8 @@ The effects are the same as with [prelockd](https://github.com/hakavlad/prelockd
 
 - `MemAvailable` may be calculated incorrectly (reserved `vm.unevictable_activefile_kbytes` value cannot be reclaimed);
 - Setting too high `vm.unevictable_activefile_kbytes` can lead to unwanted and too aggressive swapping out. Don't set too high `vm.unevictable_activefile_kbytes` value.
+![pic](https://i.ibb.co/8cNsJXT/Virtual-Box-deb9-2-09-12-2020-23-31-54.png)
+![pic](https://i.ibb.co/9p9q698/Virtual-Box-deb9-2-09-12-2020-23-33-42.png)
 
 ## See also
 
