@@ -23,7 +23,7 @@
 
 -- https://lkml.org/lkml/2018/9/10/296
 
-### Why don't you try sending it to linux-mm?
+## Why don't you try sending it to linux-mm?
 
 multiple reasons
 * this patch is just a proof of concept really, and does not meet the quality I'd accept of myself for sending it upstream (have you read that help text? lol)
@@ -40,15 +40,22 @@ I don't care, I consider the patch in the public domain(and/or all other license
 
 -- https://www.phoronix.com/forums/forum/phoronix/general-discussion/1118164-yes-linux-does-bad-in-low-ram-memory-pressure-situations-on-the-desktop?p=1120024#post1120024
 
-### Info
+## Info
 
 `le9h.patch` was tested on Debian 9 with Linux 5.3.18 and works well. Need to rebase for Linux 5.4+.
 
-### Known problems
+## Effects
+
+Effects are same as with prelockd:
+- OOM killer comes faster (especially with noswap).
+- Fast system reclaiming after OOM.
+- Improved system responsiveness under low-memory conditions.
+
+## Known problems
 
 `MemAvailable` may be calculated incorrectly (reserved `vm.unevictable_activefile_kbytes` value cannot be reclaimed). Don't set too high `vm.unevictable_activefile_kbytes` value.
 
-### See also
+## See also
 
 - Main thread https://web.archive.org/web/20191018023405/https://gist.github.com/constantoverride/84eba764f487049ed642eb2111a20830
 - https://bugs.freedesktop.org/show_bug.cgi?id=111601
