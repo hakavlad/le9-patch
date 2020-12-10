@@ -67,6 +67,12 @@ The effects are the same as with [prelockd](https://github.com/hakavlad/prelockd
 - https://forum.rosalinux.ru/viewtopic.php?p=101829&sid=10e68a368377f6031a55b1ed1a1802ec#p101829
 - https://abf.io/import/kernel-desktop-4.15/blob/rosa2016.1/le9-rosa.patch
 - https://www.kernel.org/doc/html/latest/vm/unevictable-lru.html
+- When DMA is disabled system freeze on high memory usage (since 2007) https://bugs.launchpad.net/ubuntu/+source/linux/+bug/159356
+- Let's talk about the elephant in the room - the Linux kernel's inability to gracefully handle low memory pressure
+    - https://lore.kernel.org/lkml/d9802b6a-949b-b327-c4a6-3dbca485ec20@gmx.com/
+    - https://www.phoronix.com/forums/forum/phoronix/general-discussion/1118164-yes-linux-does-bad-in-low-ram-memory-pressure-situations-on-the-desktop
+    - https://news.ycombinator.com/item?id=20620545
+    - https://www.reddit.com/r/linux/comments/cmg48b/lets_talk_about_the_elephant_in_the_room_the/
 - https://stackoverflow.com/questions/52067753/how-to-keep-executable-code-in-memory-even-under-memory-pressure-in-linux
 - Howto prevent kernel from evicting code pages ever? (to avoid disk thrashing when about to run out of RAM)
     - https://stackoverflow.com/questions/51927528/how-to-prevent-linux-kernel-from-evicting-file-backed-executable-pages-when-abou
