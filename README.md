@@ -51,6 +51,10 @@ The effects are the same as with [prelockd](https://github.com/hakavlad/prelockd
 - Fast system reclaiming after OOM.
 - Improved system responsiveness under low-memory conditions.
 
+## Demo
+
+https://youtu.be/eJ7kRaJT4Ts - Linux 5.9.12 with le9g.patch
+
 ## Known problems
 
 - `MemAvailable` may be calculated incorrectly (reserved `vm.unevictable_activefile_kbytes` value cannot be reclaimed);
