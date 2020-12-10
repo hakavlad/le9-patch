@@ -2,7 +2,7 @@
 
 > The attached kernel patch (applied on top of 4.18.5) that I've tried, almost completely eliminates the disk thrashing(the constant reading of executable(and .so) files on every context switch) associated with freezing the OS and so, with this patch, the OOM-killer is triggered within a maxium of 1 second when it is needed, rather than, without this patch, freeze the OS for minutes(or just a long time, it may even auto reboot depending on your kernel .config options set to panic(reboot) on hang after xx seconds) with constant disk reading well before OOM-killer gets triggered.
 
--- https://bugs.launchpad.net/ubuntu/+source/linux/+bug/159356/comments/89
+— https://bugs.launchpad.net/ubuntu/+source/linux/+bug/159356/comments/89
 
 > Tested on kernel 4.18.5 under Qubes OS, in both dom0 and VMs. It gets
 > rid of the disk thrashing that would otherwise seemingly-permanently
@@ -21,7 +21,7 @@
 > some pages that are being re-read during high memory pressure, but
 > they for some reason don't cause any(or much) disk thrashing.
 
--- https://lkml.org/lkml/2018/9/10/296
+— https://lkml.org/lkml/2018/9/10/296
 
 ## Why don't you try sending it to linux-mm?
 
@@ -77,19 +77,3 @@ The effects are the same as with [prelockd](https://github.com/hakavlad/prelockd
 - `le9g.patch` https://bugzilla.kernel.org/show_bug.cgi?id=196729#c49, https://www.phoronix.com/forums/forum/phoronix/general-discussion/1118164-yes-linux-does-bad-in-low-ram-memory-pressure-situations-on-the-desktop?p=1119440#post1119440
 - `le9h.patch` https://web.archive.org/web/20191018023217/https://gist.github.com/howaboutsynergy/04fd9be927835b055ac15b8b64658e85, https://www.phoronix.com/forums/forum/phoronix/general-discussion/1118164-yes-linux-does-bad-in-low-ram-memory-pressure-situations-on-the-desktop?p=1119792#post1119792
 - `le9i.patch` https://web.archive.org/web/20191018023434/https://gist.github.com/howaboutsynergy/cbfa3cc5e8093c26c29f5d411c16e6b1
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
