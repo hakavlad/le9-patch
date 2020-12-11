@@ -1,8 +1,9 @@
-le9g.patch for Linux 5.9
+This patch is an attempt to rebase the original `le9g.patch` for Linux 5.9.
 
-diff -pru a/mm/vmscan.c b/mm/vmscan.c
---- a/mm/vmscan.c	2020-12-02 02:52:03.000000000 -0500
-+++ b/mm/vmscan.c	2020-12-10 08:56:53.226486427 -0500
+diff --git a/mm/vmscan.c b/mm/vmscan.c
+index 8b11736..9a6a3b3 100644
+--- a/mm/vmscan.c
++++ b/mm/vmscan.c
 @@ -2416,6 +2416,14 @@ out:
  			BUG();
  		}
@@ -10,7 +11,7 @@ diff -pru a/mm/vmscan.c b/mm/vmscan.c
 +	if (NR_ACTIVE_FILE == lru) {
 +		long long kib_active_file_now=global_node_page_state(NR_ACTIVE_FILE) * MAX_NR_ZONES;
 +		if (kib_active_file_now <= 256*1024) {
-+			nr[lru] = 0; //don't reclaim any Active(file) (see /proc/meminfo) if they are under 256MiB
++			nr[lru] = 0; // don't reclaim any Active(file) (see /proc/meminfo) if they are under 256MiB
 +			continue;
 +		}
 +	}
