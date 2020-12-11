@@ -1,11 +1,10 @@
 This patch is an attempt to rebase the original `le9h.patch` for Linux 5.9.
 
-diff -prU5 a/Documentation/admin-guide/sysctl/vm.rst b/Documentation/admin-guide/sysctl/vm.rst
---- a/Documentation/admin-guide/sysctl/vm.rst	2020-12-08 18:42:05.000000000 +0900
-+++ b/Documentation/admin-guide/sysctl/vm.rst	2020-12-10 23:53:13.000000000 +0900
-@@ -877,10 +877,74 @@ userfaultfd system calls, or set this to
- privileged users (with SYS_CAP_PTRACE capability).
- 
+diff --git a/Documentation/admin-guide/sysctl/vm.rst b/Documentation/admin-guide/sysctl/vm.rst
+index 4b9d2e8..4acd980 100644
+--- a/Documentation/admin-guide/sysctl/vm.rst
++++ b/Documentation/admin-guide/sysctl/vm.rst
+@@ -879,6 +879,70 @@ privileged users (with SYS_CAP_PTRACE capability).
  The default value is 1.
  
  
@@ -76,14 +75,11 @@ diff -prU5 a/Documentation/admin-guide/sysctl/vm.rst b/Documentation/admin-guide
  user_reserve_kbytes
  ===================
  
- When overcommit_memory is set to 2, "never overcommit" mode, reserve
- min(3% of current process size, user_reserve_kbytes) of free memory.
-diff -prU5 a/kernel/sysctl.c b/kernel/sysctl.c
---- a/kernel/sysctl.c	2020-12-08 18:42:05.000000000 +0900
-+++ b/kernel/sysctl.c	2020-12-11 21:57:32.670010650 +0900
-@@ -109,10 +109,20 @@
- /* Constants used for minimum and  maximum */
- #ifdef CONFIG_LOCKUP_DETECTOR
+diff --git a/kernel/sysctl.c b/kernel/sysctl.c
+index afad085..fdf8d88 100644
+--- a/kernel/sysctl.c
++++ b/kernel/sysctl.c
+@@ -111,6 +111,16 @@
  static int sixty = 60;
  #endif
  
@@ -100,11 +96,7 @@ diff -prU5 a/kernel/sysctl.c b/kernel/sysctl.c
  static int __maybe_unused neg_one = -1;
  static int __maybe_unused two = 2;
  static int __maybe_unused four = 4;
- static unsigned long zero_ul;
- static unsigned long one_ul = 1;
-@@ -3080,10 +3090,19 @@ static struct ctl_table vm_table[] = {
- 		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= SYSCTL_ZERO,
+@@ -3082,6 +3092,15 @@ static struct ctl_table vm_table[] = {
  		.extra2		= SYSCTL_ONE,
  	},
  #endif
@@ -120,14 +112,11 @@ diff -prU5 a/kernel/sysctl.c b/kernel/sysctl.c
  	{
  		.procname	= "user_reserve_kbytes",
  		.data		= &sysctl_user_reserve_kbytes,
- 		.maxlen		= sizeof(sysctl_user_reserve_kbytes),
- 		.mode		= 0644,
-diff -prU5 a/mm/Kconfig b/mm/Kconfig
---- a/mm/Kconfig	2020-12-08 18:42:05.000000000 +0900
-+++ b/mm/Kconfig	2020-12-11 00:10:35.000000000 +0900
-@@ -61,10 +61,43 @@ config SPARSEMEM_MANUAL
- 
- 	  If unsure, choose "Flat Memory" over this option.
+diff --git a/mm/Kconfig b/mm/Kconfig
+index 6c97488..cc78bde 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -63,6 +63,39 @@ config SPARSEMEM_MANUAL
  
  endchoice
  
@@ -167,14 +156,11 @@ diff -prU5 a/mm/Kconfig b/mm/Kconfig
  config DISCONTIGMEM
  	def_bool y
  	depends on (!SELECT_MEMORY_MODEL && ARCH_DISCONTIGMEM_ENABLE) || DISCONTIGMEM_MANUAL
- 
- config SPARSEMEM
-diff -prU5 a/mm/vmscan.c b/mm/vmscan.c
---- a/mm/vmscan.c	2020-12-08 18:42:05.000000000 +0900
-+++ b/mm/vmscan.c	2020-12-11 00:17:21.000000000 +0900
-@@ -2414,10 +2414,21 @@ out:
- 		default:
- 			/* Look ma, no brain */
+diff --git a/mm/vmscan.c b/mm/vmscan.c
+index 8b11736..60371c4 100644
+--- a/mm/vmscan.c
++++ b/mm/vmscan.c
+@@ -2416,6 +2416,17 @@ out:
  			BUG();
  		}
  
@@ -192,5 +178,3 @@ diff -prU5 a/mm/vmscan.c b/mm/vmscan.c
  		nr[lru] = scan;
  	}
  }
- 
- static void shrink_lruvec(struct lruvec *lruvec, struct scan_control *sc)
