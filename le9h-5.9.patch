@@ -1,0 +1,196 @@
+This patch is an attempt to rebase the original `le9h.patch` for Linux 5.9.
+
+diff -prU5 a/Documentation/admin-guide/sysctl/vm.rst b/Documentation/admin-guide/sysctl/vm.rst
+--- a/Documentation/admin-guide/sysctl/vm.rst	2020-12-08 18:42:05.000000000 +0900
++++ b/Documentation/admin-guide/sysctl/vm.rst	2020-12-10 23:53:13.000000000 +0900
+@@ -877,10 +877,74 @@ userfaultfd system calls, or set this to
+ privileged users (with SYS_CAP_PTRACE capability).
+ 
+ The default value is 1.
+ 
+ 
++unevictable_activefile_kbytes
++=============================
++
++How many kilobytes of `Active(file)` to never evict during high-pressure
++low-memory situations. ie. never evict active file pages if under this value.
++This will help prevent disk thrashing caused by Active(file) being close to zero
++in such situations, especially when no swap is used.
++
++As 'nivedita' (phoronix user) put it:
++"Executables and shared libraries are paged into memory, and can be paged out
++even with no swap. [...] The kernel is dumping those pages and [...] immediately
++reading them back in when execution continues."
++^ and that's what's causing the disk thrashing during memory pressure.
++
++unevictable_activefile_kbytes=X will prevent X kbytes of those most used pages
++from being evicted.
++
++The default value is 65536. That's 64 MiB.
++
++Set it to 0 to keep the default behaviour, as if this option was never
++implemented, so you can see the disk thrashing as usual.
++
++To get an idea what value to use here for your workload(eg. xfce4 with idle
++terminals) to not disk thrash at all, run this::
++
++	$ echo 1 | sudo tee /proc/sys/vm/drop_caches; grep -F 'Active(file)' /proc/meminfo
++	1
++	Active(file):     203444 kB
++
++so, using vm.unevictable_activefile_kbytes=203444 would be a good idea here.
++(you can even add a `sleep` before the grep to get a slightly increased value,
++which might be useful if something is compiling in the background and you want
++to account for that too)
++
++But you can probably go with the default value of just 65536 (aka 64 MiB)
++as this will eliminate most disk thrashing anyway, unless you're not using
++an SSD, in which case it might still be noticeable (I'm guessing?).
++
++Note that `echo 1 | sudo tee /proc/sys/vm/drop_caches` can still cause
++Active(file) to go a under the vm.unevictable_activefile_kbytes value.
++It's not an issue and this is how you know how much the value for
++vm.unevictable_activefile_kbytes should be, at the time/workload when you ran it.
++
++The value of `Active(file)` can be gotten in two ways::
++
++	$ grep -F 'Active(file)' /proc/meminfo
++	Active(file):    2712004 kB
++
++and::
++
++	$ grep nr_active_file /proc/vmstat
++	nr_active_file 678001
++
++and multiply that with MAX_NR_ZONES (which is 4), ie. `nr_active_file * MAX_NR_ZONES`
++so 678001*4=2712004  kB
++
++MAX_NR_ZONES is 4 as per:
++`include/generated/bounds.h:10:#define MAX_NR_ZONES 4 /* __MAX_NR_ZONES */`
++and is unlikely the change in the future.
++
++The hub of disk thrashing tests/explanations is here:
++https://gist.github.com/constantoverride/84eba764f487049ed642eb2111a20830
++
++
+ user_reserve_kbytes
+ ===================
+ 
+ When overcommit_memory is set to 2, "never overcommit" mode, reserve
+ min(3% of current process size, user_reserve_kbytes) of free memory.
+diff -prU5 a/kernel/sysctl.c b/kernel/sysctl.c
+--- a/kernel/sysctl.c	2020-12-08 18:42:05.000000000 +0900
++++ b/kernel/sysctl.c	2020-12-11 21:57:32.670010650 +0900
+@@ -109,10 +109,20 @@
+ /* Constants used for minimum and  maximum */
+ #ifdef CONFIG_LOCKUP_DETECTOR
+ static int sixty = 60;
+ #endif
+ 
++#if defined(CONFIG_RESERVE_ACTIVEFILE_TO_PREVENT_DISK_THRASHING)
++unsigned long sysctl_unevictable_activefile_kbytes __read_mostly =
++#if CONFIG_RESERVE_ACTIVEFILE_KBYTES < 0
++#error "CONFIG_RESERVE_ACTIVEFILE_KBYTES should be >= 0"
++#else
++  CONFIG_RESERVE_ACTIVEFILE_KBYTES
++#endif
++;
++#endif
++
+ static int __maybe_unused neg_one = -1;
+ static int __maybe_unused two = 2;
+ static int __maybe_unused four = 4;
+ static unsigned long zero_ul;
+ static unsigned long one_ul = 1;
+@@ -3080,10 +3090,19 @@ static struct ctl_table vm_table[] = {
+ 		.proc_handler	= proc_dointvec_minmax,
+ 		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= SYSCTL_ONE,
+ 	},
+ #endif
++#if defined(CONFIG_RESERVE_ACTIVEFILE_TO_PREVENT_DISK_THRASHING)
++	{
++		.procname	= "unevictable_activefile_kbytes",
++		.data		= &sysctl_unevictable_activefile_kbytes,
++		.maxlen		= sizeof(sysctl_unevictable_activefile_kbytes),
++		.mode		= 0644,
++		.proc_handler	= proc_doulongvec_minmax,
++	},
++#endif
+ 	{
+ 		.procname	= "user_reserve_kbytes",
+ 		.data		= &sysctl_user_reserve_kbytes,
+ 		.maxlen		= sizeof(sysctl_user_reserve_kbytes),
+ 		.mode		= 0644,
+diff -prU5 a/mm/Kconfig b/mm/Kconfig
+--- a/mm/Kconfig	2020-12-08 18:42:05.000000000 +0900
++++ b/mm/Kconfig	2020-12-11 00:10:35.000000000 +0900
+@@ -61,10 +61,43 @@ config SPARSEMEM_MANUAL
+ 
+ 	  If unsure, choose "Flat Memory" over this option.
+ 
+ endchoice
+ 
++config RESERVE_ACTIVEFILE_TO_PREVENT_DISK_THRASHING
++	bool "Reserve some `Active(file)` to prevent disk thrashing"
++	depends on SYSCTL
++	def_bool y
++	help
++	  Keep `Active(file)`(/proc/meminfo) pages in RAM so as to avoid system freeze
++	  due to the disk thrashing(disk reading only) that occurrs because the running
++	  executables's code is being evicted during low-mem conditions which is
++	  why it also prevents oom-killer from triggering until 10s of minutes later
++	  on some systems.
++	  
++	  Please see the value of CONFIG_RESERVE_ACTIVEFILE_KBYTES to set how many
++	  KiloBytes of Active(file) to keep by default in the sysctl setting
++	  vm.unevictable_activefile_kbytes
++	  see Documentation/admin-guide/sysctl/vm.rst for more info
++
++config RESERVE_ACTIVEFILE_KBYTES
++	int "Set default value for vm.unevictable_activefile_kbytes"
++  depends on RESERVE_ACTIVEFILE_TO_PREVENT_DISK_THRASHING
++	default "65536"
++	help
++	  This is the default value(in KiB) that vm.unevictable_activefile_kbytes gets.
++	  A value of at least 65536 or at most 262144 is recommended for users
++	  of xfce4 to avoid disk thrashing on low-memory/memory-pressure conditions,
++	  ie. mouse freeze with constant disk activity (but you can still sysrq+f to
++	  trigger oom-killer though, even without this mitigation)
++	  
++	  You can still sysctl set vm.unevictable_activefile_kbytes to a value of 0
++	  to disable this whole feature at runtime.
++	  
++	  see Documentation/admin-guide/sysctl/vm.rst for more info
++	  see also CONFIG_RESERVE_ACTIVEFILE_TO_PREVENT_DISK_THRASHING
++
+ config DISCONTIGMEM
+ 	def_bool y
+ 	depends on (!SELECT_MEMORY_MODEL && ARCH_DISCONTIGMEM_ENABLE) || DISCONTIGMEM_MANUAL
+ 
+ config SPARSEMEM
+diff -prU5 a/mm/vmscan.c b/mm/vmscan.c
+--- a/mm/vmscan.c	2020-12-08 18:42:05.000000000 +0900
++++ b/mm/vmscan.c	2020-12-11 00:17:21.000000000 +0900
+@@ -2414,10 +2414,21 @@ out:
+ 		default:
+ 			/* Look ma, no brain */
+ 			BUG();
+ 		}
+ 
++#if defined(CONFIG_RESERVE_ACTIVEFILE_TO_PREVENT_DISK_THRASHING)
++	extern unsigned int sysctl_unevictable_activefile_kbytes; //FIXME: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]   //this just needs to be moved earlier in this same function (too lazy to, atm)
++	if (LRU_ACTIVE_FILE == lru) { //doneFIXME: warning: comparison between ‘enum node_stat_item’ and ‘enum lru_list’ [-Wenum-compare] //fixed: replaced NR_ACTIVE_FILE with LRU_ACTIVE_FILE (they are both == 3 )
++		long long kib_active_file_now=global_node_page_state(NR_ACTIVE_FILE) * MAX_NR_ZONES;
++		if (kib_active_file_now <= sysctl_unevictable_activefile_kbytes) {
++			nr[lru] = 0; //ie. don't reclaim any Active(file) (see /proc/meminfo) if they are under sysctl_unevictable_activefile_kbytes see Documentation/admin-guide/sysctl/vm.rst and CONFIG_RESERVE_ACTIVEFILE_TO_PREVENT_DISK_THRASHING and CONFIG_RESERVE_ACTIVEFILE_KBYTES
++			continue;
++		}
++	}
++#endif
++
+ 		nr[lru] = scan;
+ 	}
+ }
+ 
+ static void shrink_lruvec(struct lruvec *lruvec, struct scan_control *sc)
