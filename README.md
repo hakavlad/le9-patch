@@ -42,7 +42,7 @@ I don't care, I consider the patch in the public domain(and/or all other license
 
 ## Origin
 
-The original patches were written in 2018—2019 by Markus Linsner aka constantoverride aka howaboutsynergy aka user10239615 aka Dq8CokMHloQZw aka kd4ua506I9uzkaa aka GYt2bW and released into the public domain.
+The original patches were written in 2018—2019 by Marcus Linsner aka constantoverride aka howaboutsynergy aka user10239615 aka kd4ua506I9uzkaa aka Dq8CokMHloQZw aka GYt2bW and released into the public domain.
 
 ## Info
 
@@ -57,8 +57,8 @@ The original patches were written in 2018—2019 by Markus Linsner aka constanto
     - `mm/vmscan.c` changed to reserve amount of `Active(file)`;
 - `le9i.patch` is similar to `le9h.patch` but also tries to reserve amount of `Inactive(file)`;
 - Original `le9g.patch` and `le9h.patch` patches were tested on Debian 9 with Linux 5.3.18 and work well;
-- Rebased version `le9h-5.9.patch` works well with Linux 5.9;
-- `le9h-5.9.patch` may be correctly applied to Linux 5.10 with some offset.
+- Rebased versions are available:
+    - `le9g-5.9.patch` and `le9h-5.9.patch` work well with Linux 5.9 and also may be correctly applied to Linux 5.10 (with some offset).
 
 ## Effects
 
