@@ -38,11 +38,19 @@ I don't care, I consider the patch in the public domain(and/or all other license
 
 <s>/me out</s>(actually I've decided to resume using this account(since today 03sept2019) - maybe because I'm too lazy to create yet another one everywhere, or I simply want to synergize on this one) - EDIT: nevermind, deleted everything at the end of oct. 2019, but my gists r still available on archive org tho.
 
--- https://www.phoronix.com/forums/forum/phoronix/general-discussion/1118164-yes-linux-does-bad-in-low-ram-memory-pressure-situations-on-the-desktop?p=1120024#post1120024
+— https://www.phoronix.com/forums/forum/phoronix/general-discussion/1118164-yes-linux-does-bad-in-low-ram-memory-pressure-situations-on-the-desktop?p=1120024#post1120024
 
 ## Info
 
-`le9h.patch` was tested on Debian 9 with Linux 5.3.18 and works well. Need to rebase for Linux 5.4+.
+- `le9b`—`le9e` patches are early and bad-quality versions;
+- `le9g.patch` just fix `mm/vmscan.c` to reserve fixed (256M) `Active(file)` value;
+- `le9h.patch` changes the four files:
+    - `Documentation/admin-guide/sysctl/vm.rst`
+    - `kernel/sysctl.c b/kernel/sysctl.c`
+    - `mm/Kconfig b/mm/Kconfig`
+    - `mm/vmscan.c`
+- Original `le9g.patch` and `le9h.patch` patches were tested on Debian 9 with Linux 5.3.18 and work well;
+- Rebased version `le9h-5.9.patch` works well with Linux 5.9.
 
 ## Effects
 
@@ -55,12 +63,17 @@ The effects are the same as with [prelockd](https://github.com/hakavlad/prelockd
 
 https://youtu.be/eJ7kRaJT4Ts - Linux 5.9.12 with le9g.patch
 
-## Known problems
+## Warnings
 
+- This patch was written by an amateur. Use at your own risk;
 - `MemAvailable` may be calculated incorrectly (reserved `vm.unevictable_activefile_kbytes` value cannot be reclaimed);
 - Setting too high `vm.unevictable_activefile_kbytes` can lead to unwanted and too aggressive swapping out. Don't set too high `vm.unevictable_activefile_kbytes` value.
 ![pic](https://i.ibb.co/8cNsJXT/Virtual-Box-deb9-2-09-12-2020-23-31-54.png)
 ![pic](https://i.ibb.co/9p9q698/Virtual-Box-deb9-2-09-12-2020-23-33-42.png)
+
+## Need to review 
+
+These patches need to be reviewed by kernel hackers and linux-mm peoples.
 
 ## See also
 
