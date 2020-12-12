@@ -53,7 +53,7 @@ The original patches were written in 2018—2019 by Markus Linsner aka constanto
     - `kernel/sysctl.c` changed to add the new sysctl option: `vm.unevictable_activefile_kbytes`;
     - `mm/Kconfig` changed to add the new config options:
         - `RESERVE_ACTIVEFILE_TO_PREVENT_DISK_THRASHING`;
-        - `RESERVE_ACTIVEFILE_KBYTES`);
+        - `RESERVE_ACTIVEFILE_KBYTES`;
     - `mm/vmscan.c` changed to reserve amount of `Active(file)`;
 - `le9i.patch` is similar to `le9h.patch` but also tries to reserve amount of `Inactive(file)`;
 - Original `le9g.patch` and `le9h.patch` patches were tested on Debian 9 with Linux 5.3.18 and work well;
