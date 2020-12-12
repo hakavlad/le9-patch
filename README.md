@@ -47,12 +47,12 @@ The original patches were written in 2018—2019 by Markus Linsner aka constanto
 ## Info
 
 - `le9b`—`le9e` patches are early and bad-quality versions;
-- `le9g.patch` just fix `mm/vmscan.c` to reserve fixed (256M) `Active(file)` value;
+- `le9g.patch` just changes `mm/vmscan.c` to reserve fixed (256M) `Active(file)` value;
 - `le9h.patch` changes the four files:
-    - `Documentation/admin-guide/sysctl/vm.rst`
-    - `kernel/sysctl.c b/kernel/sysctl.c`
-    - `mm/Kconfig b/mm/Kconfig`
-    - `mm/vmscan.c`
+    - `Documentation/admin-guide/sysctl/vm.rst` (update documentation);
+    - `kernel/sysctl.c` (changed to provide the new sysctl option: `vm.unevictable_activefile_kbytes`);
+    - `mm/Kconfig` (changes to proved the new config options: `RESERVE_ACTIVEFILE_TO_PREVENT_DISK_THRASHING` and `RESERVE_ACTIVEFILE_KBYTES`);
+    - `mm/vmscan.c` (changed to reserve amount of `Active(file)`);
 - Original `le9g.patch` and `le9h.patch` patches were tested on Debian 9 with Linux 5.3.18 and work well;
 - Rebased version `le9h-5.9.patch` works well with Linux 5.9.
 
