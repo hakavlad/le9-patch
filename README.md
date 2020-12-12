@@ -40,6 +40,10 @@ I don't care, I consider the patch in the public domain(and/or all other license
 
 — https://www.phoronix.com/forums/forum/phoronix/general-discussion/1118164-yes-linux-does-bad-in-low-ram-memory-pressure-situations-on-the-desktop?p=1120024#post1120024
 
+## Origin
+
+The original patches were written in 2018—2019 by Markus Linsner aka constantoverride aka howaboutsynergy aka user10239615 aka Dq8CokMHloQZw aka kd4ua506I9uzkaa aka GYt2bW and released into the public domain.
+
 ## Info
 
 - `le9b`—`le9e` patches are early and bad-quality versions;
@@ -65,7 +69,7 @@ https://youtu.be/eJ7kRaJT4Ts - Linux 5.9.12 with le9g.patch
 
 ## Warnings
 
-- This patch was written by an amateur. Use at your own risk;
+- These patches were written by an amateur. Use at your own risk.
 - `MemAvailable` may be calculated incorrectly (reserved `vm.unevictable_activefile_kbytes` value cannot be reclaimed);
 - Setting too high `vm.unevictable_activefile_kbytes` can lead to unwanted and too aggressive swapping out. Don't set too high `vm.unevictable_activefile_kbytes` value.
 ![pic](https://i.ibb.co/8cNsJXT/Virtual-Box-deb9-2-09-12-2020-23-31-54.png)
