@@ -85,13 +85,10 @@ These patches need to be reviewed by kernel hackers and linux-mm peoples.
 
 ## See also
 
-- Main thread https://web.archive.org/web/20191018023405/https://gist.github.com/constantoverride/84eba764f487049ed642eb2111a20830
-- https://bugs.freedesktop.org/show_bug.cgi?id=111601
-- OOM killer doesn't work properly, leads to a frozen OS https://unix.stackexchange.com/questions/373312/oom-killer-doesnt-work-properly-leads-to-a-frozen-os/458855#458855
-- RFC: vmscan: add min_filelist_kbytes sysctl for protecting the working set (2010) https://lore.kernel.org/patchwork/patch/222042/
-- https://forum.rosalinux.ru/viewtopic.php?p=101829&sid=10e68a368377f6031a55b1ed1a1802ec#p101829
-- https://abf.io/import/kernel-desktop-4.15/blob/rosa2016.1/le9-rosa.patch
-- https://www.kernel.org/doc/html/latest/vm/unevictable-lru.html
+- RFC: vmscan: add min_filelist_kbytes sysctl for protecting the working set (2010)
+    - https://lore.kernel.org/patchwork/patch/222042/
+    - https://lkml.org/lkml/2010/10/28/289/
+- le9 main thread https://web.archive.org/web/20191018023405/https://gist.github.com/constantoverride/84eba764f487049ed642eb2111a20830
 - When DMA is disabled system freeze on high memory usage (since 2007) https://bugs.launchpad.net/ubuntu/+source/linux/+bug/159356
 - Let's talk about the elephant in the room - the Linux kernel's inability to gracefully handle low memory pressure
     - https://lore.kernel.org/lkml/d9802b6a-949b-b327-c4a6-3dbca485ec20@gmx.com/
@@ -103,8 +100,11 @@ These patches need to be reviewed by kernel hackers and linux-mm peoples.
     - https://stackoverflow.com/questions/51927528/how-to-prevent-linux-kernel-from-evicting-file-backed-executable-pages-when-abou
     - https://lkml.org/lkml/2018/8/22/176
     - https://lkml.org/lkml/2018/9/10/296
+- M. Gorman - Understanding the Linux Virtual Memory Manager http://gauss.ececs.uc.edu/Courses/c4029/code/memory/linux-vm-mm.pdf
+- Unevictable LRU Infrastructure https://www.kernel.org/doc/html/latest/vm/unevictable-lru.html
+- OOM killer doesn't work properly, leads to a frozen OS https://unix.stackexchange.com/questions/373312/oom-killer-doesnt-work-properly-leads-to-a-frozen-os/458855#458855
 - `le9b.patch` https://launchpadlibrarian.net/386196358/le9b.patch
-- `le9d.patch` https://launchpadlibrarian.net/389887258/le9d.patch
+- `le9d.patch` https://launchpadlibrarian.net/389887258/le9d.patch, https://lkml.org/lkml/diff/2018/9/10/296/1
 - `le9e.patch` https://web.archive.org/web/20191018064208/https://github.com/howaboutsynergy/q1q/blob/865a6500231aec266bc9d646dfd230908b8676e5/OSes/archlinux/home/user/build/1packages/4used/kernel/linuxgit/le9e.patch
 - `le9g.patch`
     - https://bugzilla.kernel.org/show_bug.cgi?id=196729#c49
@@ -113,3 +113,6 @@ These patches need to be reviewed by kernel hackers and linux-mm peoples.
     - https://web.archive.org/web/20191018023217/https://gist.github.com/howaboutsynergy/04fd9be927835b055ac15b8b64658e85
     - https://www.phoronix.com/forums/forum/phoronix/general-discussion/1118164-yes-linux-does-bad-in-low-ram-memory-pressure-situations-on-the-desktop?p=1119792#post1119792
 - `le9i.patch` https://web.archive.org/web/20191018023434/https://gist.github.com/howaboutsynergy/cbfa3cc5e8093c26c29f5d411c16e6b1
+- Bug 111601 - regression: deadlock-freeze due to kernel commit aa56a292ce623734ddd30f52d73f527d1f3529b5 + `memfreeze`, `le9i.patch`, `le9h.patch` https://bugs.freedesktop.org/show_bug.cgi?id=111601
+- https://gitlab.freedesktop.org/seanpaul/dpu-staging/commit/0b992f2dbb044896c3584e10bd5b97cf41e2ec6d
+- https://abf.io/mikhailnov/kernel-desktop-4.15/blob/master/Chromium-OS-low-memory-patchset.patch
