@@ -56,9 +56,9 @@ The original patches were written in 2018—2019 by Marcus Linsner aka constanto
         - `RESERVE_ACTIVEFILE_KBYTES`;
     - `mm/vmscan.c` changed to reserve amount of `Active(file)`;
 - `le9i.patch` is similar to `le9h.patch` but also tries to reserve amount of `Inactive(file)`;
-- Original `le9g.patch` and `le9h.patch` patches were tested on Debian 9 with Linux 5.3.18 and work well;
+- Original `le9g.patch`, `le9h.patch` and `le9i.patch` patches were tested on Debian 9 with Linux 5.3 and work well;
 - Rebased versions are available:
-    - `le9g-5.9.patch` and `le9h-5.9.patch` work well with Linux 5.9 and also may be correctly applied to Linux 5.10 (with some offset).
+    - `le9g-5.9.patch`, `le9h-5.9.patch` and `le9i-5.9.patch` patches may be correctly applied to Linux 5.9 and Linux 5.10.
 
 ## Effects
 
