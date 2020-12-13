@@ -1,4 +1,5 @@
-This patch is an attempt to rebase the original `le9g.patch` for Linux 5.9.
+This patch is an attempt to rebase the original `le9g.patch` for Linux 5.9
+and also may be correctly applied to Linux 5.10 (with some offset).
 
 diff --git a/mm/vmscan.c b/mm/vmscan.c
 index 8b11736..9a6a3b3 100644
