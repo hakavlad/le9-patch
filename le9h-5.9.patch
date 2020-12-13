@@ -1,10 +1,19 @@
-This patch is an attempt to rebase the original `le9h.patch` for Linux 5.9.
+This patch is an attempt to rebase the original `le9h.patch` for Linux 5.9
+and also may be correctly applied to Linux 5.10 (with some offset).
 
 diff --git a/Documentation/admin-guide/sysctl/vm.rst b/Documentation/admin-guide/sysctl/vm.rst
-index 4b9d2e8..4acd980 100644
+index 4b9d2e8..0722589 100644
 --- a/Documentation/admin-guide/sysctl/vm.rst
 +++ b/Documentation/admin-guide/sysctl/vm.rst
-@@ -879,6 +879,70 @@ privileged users (with SYS_CAP_PTRACE capability).
+@@ -67,6 +67,7 @@ Currently, these files are in /proc/sys/vm:
+ - stat_refresh
+ - numa_stat
+ - swappiness
++- unevictable_activefile_kbytes
+ - unprivileged_userfaultfd
+ - user_reserve_kbytes
+ - vfs_cache_pressure
+@@ -879,6 +880,70 @@ privileged users (with SYS_CAP_PTRACE capability).
  The default value is 1.
  
  
@@ -69,14 +78,14 @@ index 4b9d2e8..4acd980 100644
 +and is unlikely the change in the future.
 +
 +The hub of disk thrashing tests/explanations is here:
-+https://gist.github.com/constantoverride/84eba764f487049ed642eb2111a20830
++https://web.archive.org/web/20191018023405/https://gist.github.com/constantoverride/84eba764f487049ed642eb2111a20830
 +
 +
  user_reserve_kbytes
  ===================
  
 diff --git a/kernel/sysctl.c b/kernel/sysctl.c
-index afad085..fdf8d88 100644
+index afad085..65334cb 100644
 --- a/kernel/sysctl.c
 +++ b/kernel/sysctl.c
 @@ -111,6 +111,16 @@
@@ -88,7 +97,7 @@ index afad085..fdf8d88 100644
 +#if CONFIG_RESERVE_ACTIVEFILE_KBYTES < 0
 +#error "CONFIG_RESERVE_ACTIVEFILE_KBYTES should be >= 0"
 +#else
-+  CONFIG_RESERVE_ACTIVEFILE_KBYTES
++	CONFIG_RESERVE_ACTIVEFILE_KBYTES
 +#endif
 +;
 +#endif
@@ -113,7 +122,7 @@ index afad085..fdf8d88 100644
  		.procname	= "user_reserve_kbytes",
  		.data		= &sysctl_user_reserve_kbytes,
 diff --git a/mm/Kconfig b/mm/Kconfig
-index 6c97488..cc78bde 100644
+index 6c97488..f63f35c 100644
 --- a/mm/Kconfig
 +++ b/mm/Kconfig
 @@ -63,6 +63,39 @@ config SPARSEMEM_MANUAL
@@ -138,7 +147,7 @@ index 6c97488..cc78bde 100644
 +
 +config RESERVE_ACTIVEFILE_KBYTES
 +	int "Set default value for vm.unevictable_activefile_kbytes"
-+  depends on RESERVE_ACTIVEFILE_TO_PREVENT_DISK_THRASHING
++	depends on RESERVE_ACTIVEFILE_TO_PREVENT_DISK_THRASHING
 +	default "65536"
 +	help
 +	  This is the default value(in KiB) that vm.unevictable_activefile_kbytes gets.
