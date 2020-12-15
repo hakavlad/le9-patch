@@ -1,18 +1,27 @@
+From 88c9ec97011632f42edafa3881f34f8573e8ed5a Mon Sep 17 00:00:00 2001
+From: Artem Polishchuk <ego.cordatus@gmail.com>
+Date: Mon, 14 Dec 2020 14:19:06 +0200
+Subject: [PATCH] le9g-5.9
+
 This patch is an attempt to rebase the original `le9g.patch` for Linux 5.9
 and also may be correctly applied to Linux 5.10 (with some offset).
 
+---
+ mm/vmscan.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
 diff --git a/mm/vmscan.c b/mm/vmscan.c
-index 8b11736..9a6a3b3 100644
+index 466fc3144..f991b4d58 100644
 --- a/mm/vmscan.c
 +++ b/mm/vmscan.c
-@@ -2416,6 +2416,14 @@ out:
+@@ -2415,6 +2415,14 @@ static void get_scan_count(struct lruvec *lruvec, struct scan_control *sc,
  			BUG();
  		}
  
 +	if (NR_ACTIVE_FILE == lru) {
 +		long long kib_active_file_now=global_node_page_state(NR_ACTIVE_FILE) * MAX_NR_ZONES;
 +		if (kib_active_file_now <= 256*1024) {
-+			nr[lru] = 0; // don't reclaim any Active(file) (see /proc/meminfo) if they are under 256MiB
++			nr[lru] = 0; //don't reclaim any Active(file) (see /proc/meminfo) if they are under 256MiB
 +			continue;
 +		}
 +	}
@@ -20,3 +29,6 @@ index 8b11736..9a6a3b3 100644
  		nr[lru] = scan;
  	}
  }
+-- 
+2.29.2
+
