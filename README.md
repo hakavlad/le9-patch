@@ -85,7 +85,7 @@ These patches need to be reviewed by kernel hackers and linux-mm peoples.
 
 ## Install
 
-`kernel-le9` builds (with le9g) is available for Fedora 33: https://copr.fedorainfracloud.org/coprs/atim/kernel-le9/.
+`kernel-le9` build (with `le9g-5.9.patch`) is available for Fedora 33: https://copr.fedorainfracloud.org/coprs/atim/kernel-le9/.
 
 ## See also
 
