@@ -83,6 +83,10 @@ https://youtu.be/eJ7kRaJT4Ts - Linux 5.9.12 with le9g.patch
 
 These patches need to be reviewed by kernel hackers and linux-mm peoples.
 
+## Install
+
+`kernel-le9` builds (with le9g) is available for Fedora 33: https://copr.fedorainfracloud.org/coprs/atim/kernel-le9/.
+
 ## See also
 
 - RFC: vmscan: add min_filelist_kbytes sysctl for protecting the working set (2010)
