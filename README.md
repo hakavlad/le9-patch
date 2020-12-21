@@ -73,7 +73,7 @@ The effects are the similar as with [prelockd](https://github.com/hakavlad/prelo
 
 ## Demo
 
-- https://youtu.be/c5bAOJkX_uc - Linux 5.9 + `le9i-5.9.patch`, playing supertuxkart with 7 `tail /dev/zero` in background. `vm.unevictable_activefile_kbytes=1000000`, `vm.unevictable_activefile_kbytes=0`.
+- https://youtu.be/c5bAOJkX_uc - Linux 5.9 + `le9i-5.9.patch`, playing supertuxkart with 7 `tail /dev/zero` in background. `vm.unevictable_activefile_kbytes=1000000`, `vm.unevictable_inactivefile_kbytes=0`.
 
 ## Warnings
 
