@@ -44,8 +44,6 @@ I don't care, I consider the patch in the public domain(and/or all other license
 
 The original patches were written in 2018—2019 by Marcus Linsner aka constantoverride aka howaboutsynergy aka user10239615 aka kd4ua506I9uzkaa aka Dq8CokMHloQZw aka GYt2bW and released into the public domain.
 
-## Info
-
 - `le9b`—`le9e` patches are early and bad-quality versions;
 - `le9g.patch` just changes `mm/vmscan.c` to reserve fixed (256M) `Active(file)` value;
 - `le9h.patch` changes the four files:
@@ -60,16 +58,22 @@ The original patches were written in 2018—2019 by Marcus Linsner aka constanto
 - Rebased versions are available:
     - `le9g-5.9.patch`, `le9h-5.9.patch` and `le9i-5.9.patch` patches may be correctly applied to Linux 5.9 and Linux 5.10.
 
+## le9pf
+
+`le9pf-5.10.patch` based on `le9i.patch`. `le9pf-5.10.patch` is `le9i.patch` that was fixed and changed by Oleksandr post-factum Natalenko:
+- https://gitlab.com/post-factum/pf-kernel/-/commit/4b2beea775752f77631d372ad41ce5438d3c7712
+- https://gitlab.com/post-factum/pf-kernel/-/commit/443657c2a3c0e4f4c95283989e2071c817407fef
+
 ## Effects
 
-The effects are the same as with [prelockd](https://github.com/hakavlad/prelockd) but can be achieved by reserving less memory size:
+The effects are the similar as with [prelockd](https://github.com/hakavlad/prelockd) but can be achieved by reserving less memory size:
 - OOM killer comes faster (especially with noswap).
 - Fast system reclaiming after OOM.
 - Improved system responsiveness under low-memory conditions.
 
 ## Demo
 
-https://youtu.be/eJ7kRaJT4Ts - Linux 5.9.12 with le9g.patch
+- https://youtu.be/c5bAOJkX_uc - Linux 5.9 + `le9i-5.9.patch`, playing supertuxkart with 7 `tail /dev/zero` in background. `vm.unevictable_activefile_kbytes=1000000`, `vm.unevictable_activefile_kbytes=0`.
 
 ## Warnings
 
@@ -78,10 +82,11 @@ https://youtu.be/eJ7kRaJT4Ts - Linux 5.9.12 with le9g.patch
 - Setting too high `vm.unevictable_activefile_kbytes` can lead to unwanted and too aggressive swapping out. Don't set too high `vm.unevictable_activefile_kbytes` value.
 ![pic](https://i.ibb.co/8cNsJXT/Virtual-Box-deb9-2-09-12-2020-23-31-54.png)
 ![pic](https://i.ibb.co/9p9q698/Virtual-Box-deb9-2-09-12-2020-23-33-42.png)
+- Don't mix reserving Active(file) and Inactive(file). Choose one.
 
 ## Need to review 
 
-These patches need to be reviewed by kernel hackers and linux-mm peoples.
+~~These patches need to be reviewed by kernel hackers and linux-mm peoples.~~ le9i.patch was remaked by post-factum.
 
 ## Install
 
