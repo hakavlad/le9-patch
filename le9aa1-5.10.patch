@@ -1,10 +1,10 @@
-From e8c5a01d18075e67870f400e13927599c0ea21a9 Mon Sep 17 00:00:00 2001
+From e59135be77d51c6f89d66e363ee9b524df4e2a21 Mon Sep 17 00:00:00 2001
 From: Alexey Avramov <hakavlad@gmail.com>
-Date: Sat, 26 Dec 2020 22:50:55 +0900
-Subject: [PATCH] Protect active file pages unde memory pressure
+Date: Sat, 26 Dec 2020 23:02:54 +0900
+Subject: [PATCH] Protect active file pages under memory pressure
 
 The patch provides kernel config options and sysctl knobs to control
-the aggressiveness of protecting active file pages from eviction.
+the aggressiveness of protecting active pages from eviction.
 ---
  Documentation/admin-guide/sysctl/vm.rst | 33 +++++++++++++++++++++++
  kernel/sysctl.c                         | 47 +++++++++++++++++++++++++++++++++
