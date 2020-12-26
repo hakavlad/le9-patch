@@ -1,0 +1,212 @@
+From e8c5a01d18075e67870f400e13927599c0ea21a9 Mon Sep 17 00:00:00 2001
+From: Alexey Avramov <hakavlad@gmail.com>
+Date: Sat, 26 Dec 2020 22:50:55 +0900
+Subject: [PATCH] Protect active file pages unde memory pressure
+
+The patch provides kernel config options and sysctl knobs to control
+the aggressiveness of protecting active file pages from eviction.
+---
+ Documentation/admin-guide/sysctl/vm.rst | 33 +++++++++++++++++++++++
+ kernel/sysctl.c                         | 47 +++++++++++++++++++++++++++++++++
+ mm/Kconfig                              | 22 +++++++++++++++
+ mm/vmscan.c                             | 28 ++++++++++++++++++++
+ 4 files changed, 130 insertions(+)
+
+diff --git a/Documentation/admin-guide/sysctl/vm.rst b/Documentation/admin-guide/sysctl/vm.rst
+index f455fa00c..0978fb5ec 100644
+--- a/Documentation/admin-guide/sysctl/vm.rst
++++ b/Documentation/admin-guide/sysctl/vm.rst
+@@ -24,6 +24,9 @@ files can be found in mm/swap.c.
+ 
+ Currently, these files are in /proc/sys/vm:
+ 
++- active_file_low_kbytes
++- active_file_low_rigidity
++- active_file_min_kbytes
+ - admin_reserve_kbytes
+ - block_dump
+ - compact_memory
+@@ -77,6 +80,36 @@ Currently, these files are in /proc/sys/vm:
+ - zone_reclaim_mode
+ 
+ 
++active_file_low_kbytes
++======================
++
++The soft Active(file) protection.
++
++The hardness of protection depends on vm.active_file_low_rigidity.
++
++The default value is 250000.
++
++
++active_file_low_rigidity
++========================
++
++The rigidity of holding the soft Active(file) protection.
++
++The higher the value, the greater the hardness of the protection.
++
++The values 0 and 1 disable soft Active(file) protection.
++
++The default value is 4.
++
++
++active_file_min_kbytes
++======================
++
++The hard Active(file) protection.
++
++The default value is 0.
++
++
+ admin_reserve_kbytes
+ ====================
+ 
+diff --git a/kernel/sysctl.c b/kernel/sysctl.c
+index afad08596..128df3ebf 100644
+--- a/kernel/sysctl.c
++++ b/kernel/sysctl.c
+@@ -111,6 +111,30 @@
+ static int sixty = 60;
+ #endif
+ 
++#if defined(CONFIG_PROTECT_ACTIVE_FILE)
++unsigned long sysctl_active_file_low_kbytes __read_mostly =
++#if CONFIG_PROTECT_ACTIVE_FILE_LOW_KBYTES < 0
++#error "CONFIG_PROTECT_ACTIVE_FILE_LOW_KBYTES should be >= 0"
++#else
++	CONFIG_PROTECT_ACTIVE_FILE_LOW_KBYTES
++#endif
++;
++unsigned long sysctl_active_file_low_rigidity __read_mostly =
++#if CONFIG_PROTECT_ACTIVE_FILE_LOW_RIGIDITY < 0
++#error "CONFIG_PROTECT_ACTIVE_FILE_LOW_RIGIDITY should be >= 0"
++#else
++	CONFIG_PROTECT_ACTIVE_FILE_LOW_RIGIDITY
++#endif
++;
++unsigned long sysctl_active_file_min_kbytes __read_mostly =
++#if CONFIG_PROTECT_ACTIVE_FILE_MIN_KBYTES < 0
++#error "CONFIG_PROTECT_ACTIVE_FILE_MIN_KBYTES should be >= 0"
++#else
++	CONFIG_PROTECT_ACTIVE_FILE_MIN_KBYTES
++#endif
++;
++#endif
++
+ static int __maybe_unused neg_one = -1;
+ static int __maybe_unused two = 2;
+ static int __maybe_unused four = 4;
+@@ -3082,6 +3106,29 @@ static struct ctl_table vm_table[] = {
+ 		.extra2		= SYSCTL_ONE,
+ 	},
+ #endif
++#if defined(CONFIG_PROTECT_ACTIVE_FILE)
++	{
++		.procname	= "active_file_low_kbytes",
++		.data		= &sysctl_active_file_low_kbytes,
++		.maxlen		= sizeof(sysctl_active_file_low_kbytes),
++		.mode		= 0644,
++		.proc_handler	= proc_doulongvec_minmax,
++	},
++	{
++		.procname	= "active_file_low_rigidity",
++		.data		= &sysctl_active_file_low_rigidity,
++		.maxlen		= sizeof(sysctl_active_file_low_rigidity),
++		.mode		= 0644,
++		.proc_handler	= proc_doulongvec_minmax,
++	},
++	{
++		.procname	= "active_file_min_kbytes",
++		.data		= &sysctl_active_file_min_kbytes,
++		.maxlen		= sizeof(sysctl_active_file_min_kbytes),
++		.mode		= 0644,
++		.proc_handler	= proc_doulongvec_minmax,
++	},
++#endif
+ 	{
+ 		.procname	= "user_reserve_kbytes",
+ 		.data		= &sysctl_user_reserve_kbytes,
+diff --git a/mm/Kconfig b/mm/Kconfig
+index 390165ffb..cc23db256 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -63,6 +63,28 @@ config SPARSEMEM_MANUAL
+ 
+ endchoice
+ 
++config PROTECT_ACTIVE_FILE
++	bool "Keep some active file pages under memory pressure"
++	depends on SYSCTL
++	def_bool y
++	help
++	  Not yet documented.
++
++config PROTECT_ACTIVE_FILE_LOW_KBYTES
++	int "Default value for vm.protect_active_file_low_kbytes"
++	depends on PROTECT_ACTIVE_FILE
++	default "250000"
++
++config PROTECT_ACTIVE_FILE_LOW_RIGIDITY
++	int "Default value for vm.protect_active_file_low_rigidity"
++	depends on PROTECT_ACTIVE_FILE
++	default "4"
++
++config PROTECT_ACTIVE_FILE_MIN_KBYTES
++	int "Default value for vm.protect_active_file_min_kbytes"
++	depends on PROTECT_ACTIVE_FILE
++	default "0"
++
+ config DISCONTIGMEM
+ 	def_bool y
+ 	depends on (!SELECT_MEMORY_MODEL && ARCH_DISCONTIGMEM_ENABLE) || DISCONTIGMEM_MANUAL
+diff --git a/mm/vmscan.c b/mm/vmscan.c
+index 7b4e31eac..6a5eac089 100644
+--- a/mm/vmscan.c
++++ b/mm/vmscan.c
+@@ -166,6 +166,13 @@ struct scan_control {
+ #define prefetchw_prev_lru_page(_page, _base, _field) do { } while (0)
+ #endif
+ 
++#if defined(CONFIG_PROTECT_ACTIVE_FILE)
++#define K(x) ((x) << (PAGE_SHIFT - 10))
++extern unsigned long sysctl_active_file_min_kbytes;
++extern unsigned long sysctl_active_file_low_kbytes;
++extern unsigned long sysctl_active_file_low_rigidity;
++#endif
++
+ /*
+  * From 0 .. 200.  Higher means more swappy.
+  */
+@@ -2418,6 +2425,27 @@ static void get_scan_count(struct lruvec *lruvec, struct scan_control *sc,
+ 			BUG();
+ 		}
+ 
++#if defined(CONFIG_PROTECT_ACTIVE_FILE)
++		if (lru == LRU_ACTIVE_FILE) {
++
++			unsigned long kib_active_file_now = K(
++				global_node_page_state(NR_ACTIVE_FILE));
++
++			if (kib_active_file_now <= sysctl_active_file_min_kbytes) {
++				nr[lru] = 0;
++				continue;
++			}
++
++			if (kib_active_file_now <= sysctl_active_file_low_kbytes) {
++				if (sysctl_active_file_low_rigidity >= 2) {
++					nr[lru] = scan / sysctl_active_file_low_rigidity;
++					continue;
++				}
++			}
++
++		}
++#endif
++
+ 		nr[lru] = scan;
+ 	}
+ }
+-- 
+2.11.0
+
