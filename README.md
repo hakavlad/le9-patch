@@ -72,13 +72,16 @@ This patch provides these kernel config options:
 - `CONFIG_PROTECT_ACTIVE_FILE`;
 - `CONFIG_PROTECT_ACTIVE_FILE_LOW_KBYTES`;
 - `CONFIG_PROTECT_ACTIVE_FILE_LOW_RIGIDITY`;
-- `CONFIG_PROTECT_ACTIVE_FILE_MIN_KBYTES`;
+- `CONFIG_PROTECT_ACTIVE_FILE_MIN_KBYTES`
+
 and these sysctl knobs:
 - `vm.active_file_low_kbytes` (250000 by default);
 - `vm.active_file_low_rigidity` (4 by default, pretty soft protection);
 - `vm.active_file_min_kbytes` (0 by default, hard protection disabled).
 
 `vm.active_file_low_rigidity` may be used to control hardness of `vm.active_file_low_kbytes` protection.
+
+This patch may be safly used by default.
 
 ## Effects
 
