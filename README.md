@@ -23,23 +23,6 @@
 
 — https://lkml.org/lkml/2018/9/10/296
 
-## Why don't you try sending it to linux-mm?
-
-multiple reasons
-* this patch is just a proof of concept really, and does not meet the quality I'd accept of myself for sending it upstream (have you read that help text? lol)
-* sending patches to ML requires having read and knowing all the rules for submitting patches - <s>yuck </s>(ie. me lazy)
-* they require real name and I don't want/care to provide one(did it in the past tho)
-* they will want changes to the patch that I won't like to do while still keeping my name attached to the patch (as a example from my prev. time: moving a define whose place was clearly inside a .h near its siblings(CPU stuff), into the .c right above and in the <s>middle</s>(actually top) of the function of the code using it, just because it was the only place this define was used)
-* lazy
-* kernel is so bugged that I learned to not care anymore
-
-But hey if anyone else wants to send it, be my guest, but use your own name (it's ok, you can pretend that you wrote it, you've my permission, or you can even modify it)
-I don't care, I consider the patch in the public domain(and/or all other licenses, for ease of use).
-
-<s>/me out</s>(actually I've decided to resume using this account(since today 03sept2019) - maybe because I'm too lazy to create yet another one everywhere, or I simply want to synergize on this one) - EDIT: nevermind, deleted everything at the end of oct. 2019, but my gists r still available on archive org tho.
-
-— https://www.phoronix.com/forums/forum/phoronix/general-discussion/1118164-yes-linux-does-bad-in-low-ram-memory-pressure-situations-on-the-desktop?p=1120024#post1120024
-
 ## Origin
 
 The original patches were written in 2018—2019 by Marcus Linsner aka constantoverride aka howaboutsynergy aka user10239615 aka kd4ua506I9uzkaa aka Dq8CokMHloQZw aka GYt2bW and released into the public domain.
@@ -58,18 +41,51 @@ The original patches were written in 2018—2019 by Marcus Linsner aka constanto
 - Rebased versions are available:
     - `le9g-5.9.patch`, `le9h-5.9.patch` and `le9i-5.9.patch` patches may be correctly applied to Linux 5.9 and Linux 5.10.
 
+<details>
+ <summary>Why don't you try sending it to linux-mm</summary>
+
+multiple reasons
+* this patch is just a proof of concept really, and does not meet the quality I'd accept of myself for sending it upstream (have you read that help text? lol)
+* sending patches to ML requires having read and knowing all the rules for submitting patches - <s>yuck </s>(ie. me lazy)
+* they require real name and I don't want/care to provide one(did it in the past tho)
+* they will want changes to the patch that I won't like to do while still keeping my name attached to the patch (as a example from my prev. time: moving a define whose place was clearly inside a .h near its siblings(CPU stuff), into the .c right above and in the <s>middle</s>(actually top) of the function of the code using it, just because it was the only place this define was used)
+* lazy
+* kernel is so bugged that I learned to not care anymore
+
+But hey if anyone else wants to send it, be my guest, but use your own name (it's ok, you can pretend that you wrote it, you've my permission, or you can even modify it)
+I don't care, I consider the patch in the public domain(and/or all other licenses, for ease of use).
+
+<s>/me out</s>(actually I've decided to resume using this account(since today 03sept2019) - maybe because I'm too lazy to create yet another one everywhere, or I simply want to synergize on this one) - EDIT: nevermind, deleted everything at the end of oct. 2019, but my gists r still available on archive org tho.
+
+— https://www.phoronix.com/forums/forum/phoronix/general-discussion/1118164-yes-linux-does-bad-in-low-ram-memory-pressure-situations-on-the-desktop?p=1120024#post1120024
+</details>
+
 ## le9pf
 
 `le9pf-5.10.patch` based on `le9i.patch`. `le9pf-5.10.patch` is `le9i.patch` that was fixed and changed by Oleksandr post-factum Natalenko:
 - https://gitlab.com/post-factum/pf-kernel/-/commit/4b2beea775752f77631d372ad41ce5438d3c7712
 - https://gitlab.com/post-factum/pf-kernel/-/commit/443657c2a3c0e4f4c95283989e2071c817407fef
 
+## le9aa1
+
+This patch provides these kernel config options:
+- `CONFIG_PROTECT_ACTIVE_FILE`;
+- `CONFIG_PROTECT_ACTIVE_FILE_LOW_KBYTES`;
+- `CONFIG_PROTECT_ACTIVE_FILE_LOW_RIGIDITY`;
+- `CONFIG_PROTECT_ACTIVE_FILE_MIN_KBYTES`;
+and these sysctl knobs:
+- `vm.active_file_low_kbytes` (250000 by default);
+- `vm.active_file_low_rigidity` (4 by default, pretty soft protection);
+- `vm.active_file_min_kbytes` (0 by default, hard protection disabled).
+
+`vm.active_file_low_rigidity` may be used to control hardness of `vm.active_file_low_kbytes` protection.
+
 ## Effects
 
-The effects are the similar as with [prelockd](https://github.com/hakavlad/prelockd) but can be achieved by reserving less memory size:
-- OOM killer comes faster (especially with noswap).
-- Fast system reclaiming after OOM.
-- Improved system responsiveness under low-memory conditions.
+- OOM killer comes faster (with hard protection);
+- Fast system reclaiming after OOM;
+- Improving system responsiveness under low-memory conditions;
+- Improving performans in I/O bound tasks under memory pressure.
 
 ## Demo
 
@@ -80,17 +96,22 @@ The effects are the similar as with [prelockd](https://github.com/hakavlad/prelo
 - These patches were written by an amateur. Use at your own risk.
 - `MemAvailable` may be calculated incorrectly (reserved `vm.unevictable_activefile_kbytes` value cannot be reclaimed);
 - Setting too high `vm.unevictable_activefile_kbytes` can lead to unwanted and too aggressive swapping out. Don't set too high `vm.unevictable_activefile_kbytes` value.
+<details>
+ <summary>Show images</summary>
+
 ![pic](https://i.ibb.co/8cNsJXT/Virtual-Box-deb9-2-09-12-2020-23-31-54.png)
 ![pic](https://i.ibb.co/9p9q698/Virtual-Box-deb9-2-09-12-2020-23-33-42.png)
-- Don't mix reserving Active(file) and Inactive(file). Choose one.
+</details>
+- Don't mix reserving `Active(file)` and `Inactive(file)` at the same time. Choose one.
 
 ## Need to review 
 
-~~These patches need to be reviewed by kernel hackers and linux-mm peoples.~~ le9i.patch was remaked by post-factum.
+These patches need to be reviewed by linux-mm peoples.
 
 ## Install
 
-`kernel-le9` build (with `le9g-5.9.patch`) is available for Fedora 33: https://copr.fedorainfracloud.org/coprs/atim/kernel-le9/.
+- The kernel build with `le9aa1-5.10.patch` is available for Fedora 33: https://copr.fedorainfracloud.org/coprs/atim/kernel-futex/;
+- Also [pf-kernel](https://gitlab.com/post-factum/pf-kernel/-/wikis/README) provides `Active(file)` protection by default since [v5.10-pf2](https://gitlab.com/post-factum/pf-kernel/-/tags/v5.10-pf2) [AUR package](https://aur.archlinux.org/packages/linux-pf/).
 
 ## See also
 
@@ -125,3 +146,4 @@ The effects are the similar as with [prelockd](https://github.com/hakavlad/prelo
 - Bug 111601 - regression: deadlock-freeze due to kernel commit aa56a292ce623734ddd30f52d73f527d1f3529b5 + `memfreeze`, `le9i.patch`, `le9h.patch` https://bugs.freedesktop.org/show_bug.cgi?id=111601
 - https://gitlab.freedesktop.org/seanpaul/dpu-staging/commit/0b992f2dbb044896c3584e10bd5b97cf41e2ec6d
 - https://abf.io/mikhailnov/kernel-desktop-4.15/blob/master/Chromium-OS-low-memory-patchset.patch
+- Discussing soft `Active(file)` protection with post-factum and mikhailnov - https://www.linux.org.ru/news/kernel/16052362?cid=16055197 and further.
