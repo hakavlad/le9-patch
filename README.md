@@ -44,18 +44,19 @@ The original patches were written in 2018—2019 by Marcus Linsner aka constanto
 <details>
  <summary>Why don't you try sending it to linux-mm</summary>
 
-multiple reasons
-* this patch is just a proof of concept really, and does not meet the quality I'd accept of myself for sending it upstream (have you read that help text? lol)
-* sending patches to ML requires having read and knowing all the rules for submitting patches - <s>yuck </s>(ie. me lazy)
-* they require real name and I don't want/care to provide one(did it in the past tho)
-* they will want changes to the patch that I won't like to do while still keeping my name attached to the patch (as a example from my prev. time: moving a define whose place was clearly inside a .h near its siblings(CPU stuff), into the .c right above and in the <s>middle</s>(actually top) of the function of the code using it, just because it was the only place this define was used)
-* lazy
-* kernel is so bugged that I learned to not care anymore
 
-But hey if anyone else wants to send it, be my guest, but use your own name (it's ok, you can pretend that you wrote it, you've my permission, or you can even modify it)
-I don't care, I consider the patch in the public domain(and/or all other licenses, for ease of use).
+>multiple reasons
+>* this patch is just a proof of concept really, and does not meet the quality I'd accept of myself for sending it upstream (have you read that help text? lol)
+>* sending patches to ML requires having read and knowing all the rules for submitting patches - <s>yuck </s>(ie. me lazy)
+>* they require real name and I don't want/care to provide one(did it in the past tho)
+>* they will want changes to the patch that I won't like to do while still keeping my name attached to the patch (as a example from my prev. time: moving a define whose place was clearly inside a .h near its siblings(CPU stuff), into the .c right above and in the <s>middle</s>(actually top) of the function of the code using it, just because it was the only place this define was used)
+>* lazy
+>* kernel is so bugged that I learned to not care anymore
 
-<s>/me out</s>(actually I've decided to resume using this account(since today 03sept2019) - maybe because I'm too lazy to create yet another one everywhere, or I simply want to synergize on this one) - EDIT: nevermind, deleted everything at the end of oct. 2019, but my gists r still available on archive org tho.
+>But hey if anyone else wants to send it, be my guest, but use your own name (it's ok, you can pretend that you wrote it, you've my permission, or you can even modify it)
+>I don't care, I consider the patch in the public domain(and/or all other licenses, for ease of use).
+
+><s>/me out</s>(actually I've decided to resume using this account(since today 03sept2019) - maybe because I'm too lazy to create yet another one everywhere, or I simply want to synergize on this one) - EDIT: nevermind, deleted everything at the end of oct. 2019, but my gists r still available on archive org tho.
 
 — https://www.phoronix.com/forums/forum/phoronix/general-discussion/1118164-yes-linux-does-bad-in-low-ram-memory-pressure-situations-on-the-desktop?p=1120024#post1120024
 </details>
@@ -96,16 +97,17 @@ This patch may be safly used by default.
 
 ## Warnings
 
-- These patches were written by an amateur. Use at your own risk.
+- These patches were written by an amateur. Use at your own risk;
 - `MemAvailable` may be calculated incorrectly (reserved `vm.unevictable_activefile_kbytes` value cannot be reclaimed);
-- Setting too high `vm.unevictable_activefile_kbytes` can lead to unwanted and too aggressive swapping out. Don't set too high `vm.unevictable_activefile_kbytes` value.
+- Setting too high `vm.unevictable_activefile_kbytes` can lead to unwanted and too aggressive swapping out. Don't set too high `vm.unevictable_activefile_kbytes` value;
+- Don't mix reserving `Active(file)` and `Inactive(file)` at the same time. Choose one.
+
 <details>
  <summary>Show images</summary>
 
 ![pic](https://i.ibb.co/8cNsJXT/Virtual-Box-deb9-2-09-12-2020-23-31-54.png)
 ![pic](https://i.ibb.co/9p9q698/Virtual-Box-deb9-2-09-12-2020-23-33-42.png)
 </details>
-- Don't mix reserving `Active(file)` and `Inactive(file)` at the same time. Choose one.
 
 ## Need to review 
 
@@ -114,7 +116,7 @@ These patches need to be reviewed by linux-mm peoples.
 ## Install
 
 - The kernel build with `le9aa1-5.10.patch` is available for Fedora 33: https://copr.fedorainfracloud.org/coprs/atim/kernel-futex/;
-- Also [pf-kernel](https://gitlab.com/post-factum/pf-kernel/-/wikis/README) provides `Active(file)` protection by default since [v5.10-pf2](https://gitlab.com/post-factum/pf-kernel/-/tags/v5.10-pf2) [AUR package](https://aur.archlinux.org/packages/linux-pf/).
+- Also [pf-kernel](https://gitlab.com/post-factum/pf-kernel/-/wikis/README) provides `Active(file)` protection by default since [v5.10-pf2](https://gitlab.com/post-factum/pf-kernel/-/tags/v5.10-pf2) [[AUR package](https://aur.archlinux.org/packages/linux-pf/)].
 
 ## See also
 
