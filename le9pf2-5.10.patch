@@ -1,0 +1,207 @@
+From 990ddacf8d6a475aaba52d930306ff023ea52d87 Mon Sep 17 00:00:00 2001
+From: Oleksandr Natalenko <oleksandr@natalenko.name>
+Date: Mon, 28 Dec 2020 12:48:07 +0100
+Subject: [PATCH] mm-5.11: protect file mappings under memory pressure
+
+Signed-off-by: Oleksandr Natalenko <oleksandr@natalenko.name>
+---
+ Documentation/admin-guide/sysctl/vm.rst | 27 +++++++++++++++++++
+ kernel/sysctl.c                         | 35 +++++++++++++++++++++++++
+ mm/Kconfig                              | 35 +++++++++++++++++++++++++
+ mm/vmscan.c                             | 22 ++++++++++++++++
+ 4 files changed, 119 insertions(+)
+
+diff --git a/Documentation/admin-guide/sysctl/vm.rst b/Documentation/admin-guide/sysctl/vm.rst
+index e35a3f2fb006..cfff03882dec 100644
+--- a/Documentation/admin-guide/sysctl/vm.rst
++++ b/Documentation/admin-guide/sysctl/vm.rst
+@@ -69,6 +69,8 @@ Currently, these files are in /proc/sys/vm:
+ - stat_refresh
+ - numa_stat
+ - swappiness
++- unevictable_activefile_kbytes_low
++- unevictable_activefile_kbytes_min
+ - unprivileged_userfaultfd
+ - user_reserve_kbytes
+ - vfs_cache_pressure
+@@ -886,6 +888,31 @@ calls without any restrictions.
+ The default value is 0.
+ 
+ 
++unevictable_activefile_kbytes_low
++=================================
++
++Keep some active file pages still mapped under memory pressure to avoid
++potential disk thrashing that may occur due to evicting running executables
++code. This implements soft eviction throttling, and some file pages can still
++be discarded.
++
++Setting it to 0 effectively disables this feature.
++
++The default value is 512 MiB.
++
++
++unevictable_activefile_kbytes_min
++=================================
++
++Keep all active file pages still mapped under memory pressure to avoid
++potential disk thrashing that may occur due to evicting running executables
++code. This is the hard limit.
++
++Setting it to 0 effectively disables this feature.
++
++The default value is 256 MiB.
++
++
+ user_reserve_kbytes
+ ===================
+ 
+diff --git a/kernel/sysctl.c b/kernel/sysctl.c
+index c9fbdd848138..8d4f58a481f0 100644
+--- a/kernel/sysctl.c
++++ b/kernel/sysctl.c
+@@ -111,6 +111,22 @@
+ static int sixty = 60;
+ #endif
+ 
++#if defined(CONFIG_UNEVICTABLE_ACTIVEFILE)
++#if CONFIG_UNEVICTABLE_ACTIVEFILE_KBYTES_LOW < 0
++#error "CONFIG_UNEVICTABLE_ACTIVEFILE_KBYTES_LOW should be >= 0"
++#endif
++#if CONFIG_UNEVICTABLE_ACTIVEFILE_KBYTES_MIN < 0
++#error "CONFIG_UNEVICTABLE_ACTIVEFILE_KBYTES_MIN should be >= 0"
++#endif
++#if CONFIG_UNEVICTABLE_ACTIVEFILE_KBYTES_LOW < CONFIG_UNEVICTABLE_ACTIVEFILE_KBYTES_MIN
++#error "CONFIG_UNEVICTABLE_ACTIVEFILE_KBYTES_LOW should be >= CONFIG_UNEVICTABLE_ACTIVEFILE_KBYTES_MIN"
++#endif
++unsigned long sysctl_unevictable_activefile_kbytes_low __read_mostly =
++	CONFIG_UNEVICTABLE_ACTIVEFILE_KBYTES_LOW;
++unsigned long sysctl_unevictable_activefile_kbytes_min __read_mostly =
++	CONFIG_UNEVICTABLE_ACTIVEFILE_KBYTES_MIN;
++#endif
++
+ static int __maybe_unused neg_one = -1;
+ static int __maybe_unused two = 2;
+ static int __maybe_unused four = 4;
+@@ -3092,6 +3108,25 @@ static struct ctl_table vm_table[] = {
+ 		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= SYSCTL_ONE,
+ 	},
++#endif
++#if defined(CONFIG_UNEVICTABLE_ACTIVEFILE)
++	{
++		.procname	= "unevictable_activefile_kbytes_low",
++		.data		= &sysctl_unevictable_activefile_kbytes_low,
++		.maxlen		= sizeof(sysctl_unevictable_activefile_kbytes_low),
++		.mode		= 0644,
++		.proc_handler	= proc_doulongvec_minmax,
++		.extra1		= &sysctl_unevictable_activefile_kbytes_min,
++	},
++	{
++		.procname	= "unevictable_activefile_kbytes_min",
++		.data		= &sysctl_unevictable_activefile_kbytes_min,
++		.maxlen		= sizeof(sysctl_unevictable_activefile_kbytes_min),
++		.mode		= 0644,
++		.proc_handler	= proc_doulongvec_minmax,
++		.extra1		= &zero_ul,
++		.extra2		= &sysctl_unevictable_activefile_kbytes_low,
++	},
+ #endif
+ 	{
+ 		.procname	= "user_reserve_kbytes",
+diff --git a/mm/Kconfig b/mm/Kconfig
+index f730605b8dcf..5f4846c7de45 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -63,6 +63,41 @@ config SPARSEMEM_MANUAL
+ 
+ endchoice
+ 
++config UNEVICTABLE_ACTIVEFILE
++	bool "Keep some active file pages under memory pressure"
++	depends on SYSCTL
++	def_bool y
++	help
++	  Keep some active file pages still mapped under memory pressure to avoid
++	  potential disk thrashing that may occur due to evicting running executables
++	  code.
++
++	  The UNEVICTABLE_ACTIVEFILE_KBYTES_LOW value defines a threshold to activate
++	  file pages eviction throttling. The vm.unevictable_activefile_kbytes_low
++	  sysctl knob is used to change the amount in the runtime (setting it to 0
++	  effectively disables this feature).
++
++	  Recommended value: 524288 for typical desktop workload.
++
++	  The UNEVICTABLE_ACTIVEFILE_KBYTES_MIN value sets the amount of pages to keep
++	  as a hard limit. The vm.unevictable_activefile_kbytes_min sysctl knob is used
++	  to change the amount in the runtime (setting it to 0 effectively disables
++	  this feature).
++
++	  Recommended value: 262144 for typical desktop workload.
++
++	  See also: Documentation/admin-guide/sysctl/vm.rst
++
++config UNEVICTABLE_ACTIVEFILE_KBYTES_LOW
++	int "Default value for vm.unevictable_activefile_kbytes_low"
++	depends on UNEVICTABLE_ACTIVEFILE
++	default "524288"
++
++config UNEVICTABLE_ACTIVEFILE_KBYTES_MIN
++	int "Default value for vm.unevictable_activefile_kbytes_min"
++	depends on UNEVICTABLE_ACTIVEFILE
++	default "262144"
++
+ config DISCONTIGMEM
+ 	def_bool y
+ 	depends on (!SELECT_MEMORY_MODEL && ARCH_DISCONTIGMEM_ENABLE) || DISCONTIGMEM_MANUAL
+diff --git a/mm/vmscan.c b/mm/vmscan.c
+index 257cba79a96d..e4f4349fb3b3 100644
+--- a/mm/vmscan.c
++++ b/mm/vmscan.c
+@@ -164,6 +164,11 @@ struct scan_control {
+ #define prefetchw_prev_lru_page(_page, _base, _field) do { } while (0)
+ #endif
+ 
++#if defined(CONFIG_UNEVICTABLE_ACTIVEFILE)
++extern unsigned long sysctl_unevictable_activefile_kbytes_low;
++extern unsigned long sysctl_unevictable_activefile_kbytes_min;
++#endif
++
+ /*
+  * From 0 .. 200.  Higher means more swappy.
+  */
+@@ -2232,6 +2237,10 @@ enum scan_balance {
+ 	SCAN_FILE,
+ };
+ 
++#if defined(CONFIG_UNEVICTABLE_ACTIVEFILE)
++#define K(x) ((x) << (PAGE_SHIFT - 10))
++#endif
++
+ /*
+  * Determine how aggressively the anon and file LRU lists should be
+  * scanned.  The relative value of each set of LRU lists is determined
+@@ -2425,6 +2434,19 @@ static void get_scan_count(struct lruvec *lruvec, struct scan_control *sc,
+ 			BUG();
+ 		}
+ 
++#if defined(CONFIG_UNEVICTABLE_ACTIVEFILE)
++		if (lru == LRU_ACTIVE_FILE) {
++			unsigned long activefile_kbytes_now = K(global_node_page_state(NR_ACTIVE_FILE));
++			unsigned long low_scan_granularity = SWAP_CLUSTER_MAX >> sc->priority;
++
++			if (activefile_kbytes_now < sysctl_unevictable_activefile_kbytes_low &&
++				activefile_kbytes_now > sysctl_unevictable_activefile_kbytes_min &&
++				scan > low_scan_granularity)
++				scan = low_scan_granularity;
++			else if (activefile_kbytes_now <= sysctl_unevictable_activefile_kbytes_min)
++				scan = 0;
++		}
++#endif
+ 		nr[lru] = scan;
+ 	}
+ }
+-- 
+GitLab
+
