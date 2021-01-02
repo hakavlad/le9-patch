@@ -77,12 +77,52 @@ This patch provides these kernel config options:
 
 and these sysctl knobs:
 - `vm.active_file_low_kbytes` (250000 by default);
-- `vm.active_file_low_rigidity` (4 by default, pretty soft protection);
+- `vm.active_file_low_rigidity` (4 by default, pretty soft protection; increase the value to make the soft protection harder);
 - `vm.active_file_min_kbytes` (0 by default, hard protection disabled).
 
 `vm.active_file_low_rigidity` may be used to control hardness of `vm.active_file_low_kbytes` protection.
 
-This patch may be safly used by default.
+## le9ab
+
+This patch provides these kernel config options:
+- `CONFIG_ACTIVE_FILE_RESERVE`;
+- `CONFIG_ACTIVE_FILE_RESERVE_HARD_KBYTES`;
+- `CONFIG_ACTIVE_FILE_RESERVE_SOFT_KBYTES`;
+
+and these sysctl knobs:
+- `vm.active_file_reserve_hard_kbytes` (0 by default, hard protection disabled);
+- `vm.active_file_reserve_soft_kbytes` (200000 by default).
+
+The hardness of the soft protection depends on `vm.swappiness`. Reducing `vm.swappiness` weakens soft reservation.
+
+This is most safe version of the le9 patches and recommended to use by default.
+
+From `vm.rst`:
+```
+active_file_reserve_hard_kbytes
+===============================
+
+Available only when CONFIG_ACTIVE_FILE_RESERVE is set. Active file pages should
+not be evicted under memory pressure if their volume is below this (even with
+no free swap space).
+
+The default value is 0.
+
+
+active_file_reserve_soft_kbytes
+===============================
+
+Available only when CONFIG_ACTIVE_FILE_RESERVE is set. Active file pages should
+not be evicted under memory pressure if their volume is below this (except when
+other pages cannot be evicted, i.e. the reservation does not work if there is
+no free swap space).
+
+If vm.active_file_reserve_soft_kbytes <= vm.active_file_reserve_hard_kbytes
+than vm.active_file_reserve_hard_kbytes threshold will have higher priority and
+hard reservation will be applied.
+
+The default value is 200000.
+```
 
 ## Effects
 
@@ -90,6 +130,12 @@ This patch may be safly used by default.
 - Fast system reclaiming after OOM;
 - Improving system responsiveness under low-memory conditions;
 - Improving performans in I/O bound tasks under memory pressure.
+
+## Testing
+
+These tools may be used to monitor memory and PSI metrics during stress tests:
+- [mem2log](https://github.com/hakavlad/le9-patch/tree/main/mem2log) may be used to log memory metrics from `/proc/meminfo`;
+- [psi2log](https://github.com/hakavlad/nohang/blob/master/docs/psi2log.manpage.md) from [nohang](https://github.com/hakavlad/nohang) package may be used to log [PSI](https://facebookmicrosites.github.io/psi/docs/overview) metrics during stress tests.
 
 ## Demo
 
