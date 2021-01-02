@@ -1,0 +1,291 @@
+#!/usr/bin/env python3.5
+"""mem2log"""
+
+from argparse import ArgumentParser
+from ctypes import CDLL
+from signal import SIGHUP, SIGINT, SIGQUIT, SIGTERM, signal
+from sys import exit
+from time import sleep
+
+
+def log(msg):
+    """
+    """
+    print(msg)
+    if separate_log:
+        logging.info(msg)
+
+
+def mlockall():
+    """
+    """
+    MCL_CURRENT = 1
+    MCL_FUTURE = 2
+    MCL_ONFAULT = 4
+
+    libc = CDLL(None, use_errno=True)
+    result = libc.mlockall(MCL_CURRENT | MCL_FUTURE | MCL_ONFAULT)
+
+    if result != 0:
+        result = libc.mlockall(MCL_CURRENT | MCL_FUTURE)
+        if result != 0:
+            log('WARNING: cannot lock process memory: [Errno {}]'.format(
+                result))
+        else:
+            log('Process memory locked with MCL_CURRENT | MCL_FUTURE')
+    else:
+        log('Process memory locked with MCL_CURRENT | MCL_FUTURE | MCL_'
+            'ONFAULT')
+
+
+def check_meminfo():
+    """
+    """
+    with open('/proc/meminfo') as f:
+        for n, line in enumerate(f):
+
+            # MA
+            if n == mem_available_index:
+                mem_available = int(line.split(':')[1][:-4])
+                continue
+
+            # BU
+            if n == buffers_index:
+                buffers = int(line.split(':')[1][:-4])
+                continue
+
+            # CA
+            if n == cached_index:
+                cached = int(line.split(':')[1][:-4])
+                continue
+
+            # AA
+            if n == active_anon_index:
+                active_anon = int(line.split(':')[1][:-4])
+                continue
+
+            # IA
+            if n == inactive_anon_index:
+                inactive_anon = int(line.split(':')[1][:-4])
+                continue
+
+            # AF
+            if n == active_file_index:
+                active_file = int(line.split(':')[1][:-4])
+                continue
+
+            # IF
+            if n == inactive_file_index:
+                inactive_file = int(line.split(':')[1][:-4])
+                continue
+
+            # ST
+            if n == swap_total_index:
+                swap_total = int(line.split(':')[1][:-4])
+                continue
+
+            # SF
+            if n == swap_free_index:
+                swap_free = int(line.split(':')[1][:-4])
+                continue
+
+            # SH
+            if n == shmem_index:
+                shmem = int(line.split(':')[1][:-4])
+                continue
+
+            # SR
+            if n == sreclaimable_index:
+                sreclaimable = int(line.split(':')[1][:-4])
+                continue
+
+    return (
+        mem_available,
+        buffers,
+        cached,
+        active_anon,
+        inactive_anon,
+        active_file,
+        inactive_file,
+        swap_total,
+        swap_free,
+        shmem,
+        sreclaimable)
+
+
+def percent(num):
+    """Interprete num as percentage."""
+    return round(num * 100, 1)
+
+
+def signal_handler(signum, frame):
+    """
+    """
+    def signal_handler_inner(signum, frame):
+        pass
+
+    for i in sig_list:
+        signal(i, signal_handler_inner)
+
+    log('--')
+
+    log('Got the {} signal; exit.'.format(
+        sig_dict[signum]))
+
+    exit()
+
+
+parser = ArgumentParser()
+
+parser.add_argument(
+    '-i',
+    '--interval',
+    help="""interval in sec""",
+    default=2,
+    type=float
+)
+
+
+parser.add_argument(
+    '-l',
+    '--log',
+    help="""path to log file""",
+    default=None,
+    type=str
+)
+
+
+args = parser.parse_args()
+interval = args.interval
+log_file = args.log
+
+
+if log_file is None:
+    separate_log = False
+else:
+    separate_log = True
+    import logging
+
+if log_file is not None:
+    logstring = 'log file: {}, '.format(log_file)
+else:
+    logstring = 'log file is not set, '
+
+
+if separate_log:
+    try:
+        logging.basicConfig(
+            filename=log_file,
+            level=logging.INFO,
+            format="%(asctime)s: %(message)s")
+    except Exception as e:
+        print(e)
+        exit(1)
+
+
+if interval <= 0:
+    log('error: argument -i/--interval: the value must be greater than 0')
+    exit(1)
+
+
+with open('/proc/meminfo') as f:
+    mem_list = f.readlines()
+
+
+mem_list_names = []
+
+for s in mem_list:
+    mem_list_names.append(s.split(':')[0])
+
+
+mem_available_index = mem_list_names.index('MemAvailable')
+buffers_index = mem_list_names.index('Buffers')
+cached_index = mem_list_names.index('Cached')
+active_anon_index = mem_list_names.index('Active(anon)')
+inactive_anon_index = mem_list_names.index('Inactive(anon)')
+active_file_index = mem_list_names.index('Active(file)')
+inactive_file_index = mem_list_names.index('Inactive(file)')
+swap_total_index = mem_list_names.index('SwapTotal')
+swap_free_index = mem_list_names.index('SwapFree')
+shmem_index = mem_list_names.index('Shmem')
+sreclaimable_index = mem_list_names.index('SReclaimable')
+
+
+mem_total = int(mem_list[0].split(':')[1][:-4])
+swap_total = int(mem_list[swap_total_index].split(':')[1][:-4])
+
+
+sig_list = [SIGTERM, SIGINT, SIGQUIT, SIGHUP]
+
+sig_dict = {
+    SIGINT: 'SIGINT',
+    SIGQUIT: 'SIGQUIT',
+    SIGHUP: 'SIGHUP',
+    SIGTERM: 'SIGTERM'
+}
+
+for i in sig_list:
+    signal(i, signal_handler)
+
+
+log('Starting mem2log with interval {}s'.format(interval))
+
+
+if separate_log:
+    log('log file: {}'.format(log_file))
+
+
+mlockall()
+
+
+log(
+    'MemTotal: {}M, SwapTotal: {}'.format(
+        round(mem_total / 1024, 1),
+        round(swap_total / 1024, 1)
+    )
+)
+
+
+log(
+    '--\nMA is MemAvailable, '
+    'BU is Buffers, '
+    'CA is Cached, '
+    '\nAA is Active(anon), '
+    'IA is Inactive(anon), '
+    'AF is Active(file), '
+    'IF is Inactive(file), '
+    '\nSF is SwapFree, '
+    'SU is `SwapTotal - SwapFree`, '
+    'SH is Shmem, '
+    'SR is SReclaimable'
+)
+
+
+log('--')
+
+
+while True:
+
+    (mem_available, buffers, cached, active_anon, inactive_anon, active_file,
+     inactive_file, swap_total, swap_free, shmem, sreclaimable
+     ) = check_meminfo()
+
+    swap_used = swap_total - swap_free
+
+    log(
+        'MA {}, BU {}, CA {}, AA {}, IA {}, AF {}, IF {}, '
+        'SF {}, SU {}, SH {}, SR {}'.format(
+            round(mem_available / 1024, 1),
+            round(buffers / 1024, 1),
+            round(cached / 1024, 1),
+            round(active_anon / 1024, 1),
+            round(inactive_anon / 1024, 1),
+            round(active_file / 1024, 1),
+            round(inactive_file / 1024, 1),
+            round(swap_free / 1024, 1),
+            round(swap_used / 1024, 1),
+            round(shmem / 1024, 1),
+            round(sreclaimable / 1024, 1)
+        ))
+
+    sleep(interval)
