@@ -16,24 +16,37 @@ optional arguments:
   -l LOG, --log LOG     path to log file
 ```
 
-Output like follow:
+Log file example:
 ```
-$ mem2log
-Starting mem2log with interval 2s
-Process memory locked with MCL_CURRENT | MCL_FUTURE | MCL_ONFAULT
-All values are in mebibytes
-MemTotal: 9788.1, SwapTotal: 48940.3
---
-MA is MemAvailable, BU is Buffers, CA is Cached
-AA is Active(anon), IA is Inactive(anon), AF is Active(file), IF is Inactive(file)
-SF is SwapFree, SU is `SwapTotal - SwapFree`, SH is Shmem, SR is SReclaimable
---
-MA 7435.4, BU 68.7, CA 622.0, AA 200.2, IA 1021.4, AF 293.8, IF 159.3, SF 48193.5, SU 746.8, SH 228.6, SR 61.0
-MA 7434.1, BU 68.7, CA 622.9, AA 200.2, IA 1021.7, AF 293.6, IF 159.3, SF 48193.5, SU 746.8, SH 229.5, SR 61.0
-MA 7436.4, BU 68.7, CA 622.0, AA 200.2, IA 1019.6, AF 293.7, IF 159.2, SF 48193.5, SU 746.8, SH 228.6, SR 61.0
-MA 7435.9, BU 68.7, CA 622.0, AA 200.2, IA 1019.6, AF 293.7, IF 159.2, SF 48193.5, SU 746.8, SH 228.6, SR 60.9
-^C--
-Got the SIGINT signal; exit.
+2021-01-03 03:19:55,981: Starting mem2log with interval 1.0s
+2021-01-03 03:19:55,982: Log file: 0007
+2021-01-03 03:19:55,983: Process memory locked with MCL_CURRENT | MCL_FUTURE | MCL_ONFAULT
+2021-01-03 03:19:55,983: All values are in mebibytes
+2021-01-03 03:19:55,983: MemTotal: 9788.1, SwapTotal: 48940.3
+2021-01-03 03:19:55,983: --
+2021-01-03 03:19:55,983: MA is MemAvailable, BU is Buffers, CA is Cached
+2021-01-03 03:19:55,983: AA is Active(anon), IA is Inactive(anon), AF is Active(file), IF is Inactive(file)
+2021-01-03 03:19:55,983: SF is SwapFree, SU is `SwapTotal - SwapFree`, SH is Shmem, SR is SReclaimable
+2021-01-03 03:19:55,983: --
+2021-01-03 03:19:55,983: MA 7865.9, BU 39.4, CA 399.2, AA 235.1, IA 484.4, AF 103.3, IF 155.3, SF 47734.1, SU 1206.2, SH 173.8, SR 52.5
+2021-01-03 03:19:56,985: MA 7864.6, BU 39.5, CA 400.9, AA 235.1, IA 484.5, AF 103.4, IF 155.7, SF 47734.1, SU 1206.2, SH 175.2, SR 52.5
+2021-01-03 03:19:57,987: MA 7865.1, BU 39.5, CA 400.4, AA 235.1, IA 484.7, AF 103.4, IF 155.7, SF 47734.1, SU 1206.2, SH 174.7, SR 52.5
+2021-01-03 03:19:58,990: MA 7865.6, BU 39.5, CA 399.5, AA 235.1, IA 484.5, AF 103.4, IF 155.7, SF 47734.1, SU 1206.2, SH 173.8, SR 52.5
+2021-01-03 03:19:59,738: --
+2021-01-03 03:19:59,739: Got the SIGINT signal
+2021-01-03 03:19:59,739: Peak values:
+2021-01-03 03:19:59,739:   MA: min 7864.6, max 7865.9
+2021-01-03 03:19:59,739:   BU: min 39.4, max 39.5
+2021-01-03 03:19:59,739:   CA: min 399.2, max 400.9
+2021-01-03 03:19:59,739:   AA: min 235.1, max 235.1
+2021-01-03 03:19:59,740:   IA: min 484.4, max 484.7
+2021-01-03 03:19:59,740:   AF: min 103.3, max 103.4
+2021-01-03 03:19:59,740:   IF: min 155.3, max 155.7
+2021-01-03 03:19:59,740:   SF: min 47734.1, max 47734.1
+2021-01-03 03:19:59,740:   SU: min 1206.2, max 1206.2
+2021-01-03 03:19:59,740:   SH: min 173.8, max 175.2
+2021-01-03 03:19:59,741:   SR: min 52.5, max 52.5
+2021-01-03 03:19:59,741: Exit.
 ```
 
 ## Requirements

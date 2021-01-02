@@ -129,8 +129,56 @@ def signal_handler(signum, frame):
 
     log('--')
 
-    log('Got the {} signal; exit.'.format(
+    log('Got the {} signal'.format(
         sig_dict[signum]))
+
+    log('Peak values:')
+
+    log('  MA: min {}, max {}'.format(
+        round(min_dict['MA'] / 1024, 1),
+        round(max_dict['MA'] / 1024, 1)))
+
+    log('  BU: min {}, max {}'.format(
+        round(min_dict['BU'] / 1024, 1),
+        round(max_dict['BU'] / 1024, 1)))
+
+    log('  CA: min {}, max {}'.format(
+        round(min_dict['CA'] / 1024, 1),
+        round(max_dict['CA'] / 1024, 1)))
+
+    log('  AA: min {}, max {}'.format(
+        round(min_dict['AA'] / 1024, 1),
+        round(max_dict['AA'] / 1024, 1)))
+
+    log('  IA: min {}, max {}'.format(
+        round(min_dict['IA'] / 1024, 1),
+        round(max_dict['IA'] / 1024, 1)))
+
+    log('  AF: min {}, max {}'.format(
+        round(min_dict['AF'] / 1024, 1),
+        round(max_dict['AF'] / 1024, 1)))
+
+    log('  IF: min {}, max {}'.format(
+        round(min_dict['IF'] / 1024, 1),
+        round(max_dict['IF'] / 1024, 1)))
+
+    log('  SF: min {}, max {}'.format(
+        round(min_dict['SF'] / 1024, 1),
+        round(max_dict['SF'] / 1024, 1)))
+
+    log('  SU: min {}, max {}'.format(
+        round(min_dict['SU'] / 1024, 1),
+        round(max_dict['SU'] / 1024, 1)))
+
+    log('  SH: min {}, max {}'.format(
+        round(min_dict['SH'] / 1024, 1),
+        round(max_dict['SH'] / 1024, 1)))
+
+    log('  SR: min {}, max {}'.format(
+        round(min_dict['SR'] / 1024, 1),
+        round(max_dict['SR'] / 1024, 1)))
+
+    log('Exit.')
 
     exit()
 
@@ -271,6 +319,10 @@ log(
 log('--')
 
 
+min_dict = dict()
+max_dict = dict()
+
+
 while True:
 
     (mem_available, buffers, cached, active_anon, inactive_anon, active_file,
@@ -278,6 +330,61 @@ while True:
      ) = check_meminfo()
 
     swap_used = swap_total - swap_free
+
+    if ('MA' not in max_dict or mem_available > max_dict['MA']):
+        max_dict['MA'] = mem_available
+    if ('MA' not in min_dict or mem_available < min_dict['MA']):
+        min_dict['MA'] = mem_available
+
+    if ('BU' not in max_dict or buffers > max_dict['BU']):
+        max_dict['BU'] = buffers
+    if ('BU' not in min_dict or buffers < min_dict['BU']):
+        min_dict['BU'] = buffers
+
+    if ('CA' not in max_dict or cached > max_dict['CA']):
+        max_dict['CA'] = cached
+    if ('CA' not in min_dict or cached < min_dict['CA']):
+        min_dict['CA'] = cached
+
+    if ('AA' not in max_dict or active_anon > max_dict['AA']):
+        max_dict['AA'] = active_anon
+    if ('AA' not in min_dict or active_anon < min_dict['AA']):
+        min_dict['AA'] = active_anon
+
+    if ('IA' not in max_dict or inactive_anon > max_dict['IA']):
+        max_dict['IA'] = inactive_anon
+    if ('IA' not in min_dict or inactive_anon < min_dict['IA']):
+        min_dict['IA'] = inactive_anon
+
+    if ('AF' not in max_dict or active_file > max_dict['AF']):
+        max_dict['AF'] = active_file
+    if ('AF' not in min_dict or active_file < min_dict['AF']):
+        min_dict['AF'] = active_file
+
+    if ('IF' not in max_dict or inactive_file > max_dict['IF']):
+        max_dict['IF'] = inactive_file
+    if ('IF' not in min_dict or inactive_file < min_dict['IF']):
+        min_dict['IF'] = inactive_file
+
+    if ('SF' not in max_dict or swap_free > max_dict['SF']):
+        max_dict['SF'] = swap_free
+    if ('SF' not in min_dict or swap_free < min_dict['SF']):
+        min_dict['SF'] = swap_free
+
+    if ('SU' not in max_dict or swap_used > max_dict['SU']):
+        max_dict['SU'] = swap_used
+    if ('SU' not in min_dict or swap_used < min_dict['SU']):
+        min_dict['SU'] = swap_used
+
+    if ('SH' not in max_dict or shmem > max_dict['SH']):
+        max_dict['SH'] = shmem
+    if ('SH' not in min_dict or shmem < min_dict['SH']):
+        min_dict['SH'] = shmem
+
+    if ('SR' not in max_dict or sreclaimable > max_dict['SR']):
+        max_dict['SR'] = sreclaimable
+    if ('SR' not in min_dict or sreclaimable < min_dict['SR']):
+        min_dict['SR'] = sreclaimable
 
     log(
         'MA {}, BU {}, CA {}, AA {}, IA {}, AF {}, IF {}, '
