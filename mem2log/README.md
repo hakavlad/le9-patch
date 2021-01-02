@@ -1,11 +1,10 @@
 # mem2log
 
-Python script that logs memory metrics from `/proc/meminfo`.
+Memory metrics (from `/proc/meminfo`) monitor and logger.
 
 ## Usage
 
 Just run the script.
-
 ```
 $ mem2log -h
 usage: mem2log [-h] [-i INTERVAL] [-l LOG]
@@ -22,18 +21,24 @@ Output like follow:
 $ mem2log
 Starting mem2log with interval 2s
 Process memory locked with MCL_CURRENT | MCL_FUTURE | MCL_ONFAULT
-MemTotal: 9788.1M, SwapTotal: 48940.3
+All values are in mebibytes
+MemTotal: 9788.1, SwapTotal: 48940.3
 --
-MA is MemAvailable, BU is Buffers, CA is Cached, 
-AA is Active(anon), IA is Inactive(anon), AF is Active(file), IF is Inactive(file), 
+MA is MemAvailable, BU is Buffers, CA is Cached
+AA is Active(anon), IA is Inactive(anon), AF is Active(file), IF is Inactive(file)
 SF is SwapFree, SU is `SwapTotal - SwapFree`, SH is Shmem, SR is SReclaimable
 --
-MA 7524.7, BU 62.5, CA 595.6, AA 216.5, IA 971.4, AF 256.6, IF 173.0, SF 48174.0, SU 766.3, SH 219.5, SR 58.7
-MA 7467.6, BU 62.5, CA 596.8, AA 216.5, IA 1027.1, AF 256.5, IF 173.0, SF 48174.0, SU 766.3, SH 220.8, SR 58.8
-MA 7469.7, BU 62.6, CA 595.6, AA 216.5, IA 1025.7, AF 256.5, IF 173.0, SF 48174.0, SU 766.3, SH 219.6, SR 58.8
+MA 7435.4, BU 68.7, CA 622.0, AA 200.2, IA 1021.4, AF 293.8, IF 159.3, SF 48193.5, SU 746.8, SH 228.6, SR 61.0
+MA 7434.1, BU 68.7, CA 622.9, AA 200.2, IA 1021.7, AF 293.6, IF 159.3, SF 48193.5, SU 746.8, SH 229.5, SR 61.0
+MA 7436.4, BU 68.7, CA 622.0, AA 200.2, IA 1019.6, AF 293.7, IF 159.2, SF 48193.5, SU 746.8, SH 228.6, SR 61.0
+MA 7435.9, BU 68.7, CA 622.0, AA 200.2, IA 1019.6, AF 293.7, IF 159.2, SF 48193.5, SU 746.8, SH 228.6, SR 60.9
 ^C--
 Got the SIGINT signal; exit.
 ```
+
+## Requirements
+
+- Python >= 3.3
 
 ## Install
 ```

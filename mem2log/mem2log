@@ -232,34 +232,41 @@ log('Starting mem2log with interval {}s'.format(interval))
 
 
 if separate_log:
-    log('log file: {}'.format(log_file))
+    log('Log file: {}'.format(log_file))
 
 
 mlockall()
 
+log('All values are in mebibytes')
 
 log(
-    'MemTotal: {}M, SwapTotal: {}'.format(
+    'MemTotal: {}, SwapTotal: {}'.format(
         round(mem_total / 1024, 1),
         round(swap_total / 1024, 1)
     )
 )
 
+log('--')
 
 log(
-    '--\nMA is MemAvailable, '
+    'MA is MemAvailable, '
     'BU is Buffers, '
-    'CA is Cached, '
-    '\nAA is Active(anon), '
+    'CA is Cached'
+)
+
+log(
+    'AA is Active(anon), '
     'IA is Inactive(anon), '
     'AF is Active(file), '
-    'IF is Inactive(file), '
-    '\nSF is SwapFree, '
+    'IF is Inactive(file)'
+)
+
+log(
+    'SF is SwapFree, '
     'SU is `SwapTotal - SwapFree`, '
     'SH is Shmem, '
     'SR is SReclaimable'
 )
-
 
 log('--')
 
