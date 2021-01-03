@@ -124,6 +124,12 @@ hard reservation will be applied.
 The default value is 200000.
 ```
 
+## le9ab2
+
+This is the same as le9ab but with other default values:
+- `vm.active_file_reserve_hard_kbytes=250000`;
+- `vm.active_file_reserve_soft_kbytes=0`.
+
 ## Effects
 
 - OOM killer comes faster (with hard protection);
