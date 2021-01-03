@@ -1,0 +1,199 @@
+From e60a6446254b4aa69759301760186a0080a0f537 Mon Sep 17 00:00:00 2001
+From: Alexey Avramov <hakavlad@gmail.com>
+Date: Sun, 3 Jan 2021 22:08:12 +0900
+Subject: [PATCH] Reserve minimum amount of active file pages
+
+Active file pages should not be evicted under memory pressure if their
+volume is below selected value.
+
+Reservation of active file pages may be used to reduce thrashing under
+low-memory conditions.
+---
+ Documentation/admin-guide/sysctl/vm.rst | 27 ++++++++++++++++++++++++++
+ kernel/sysctl.c                         | 29 ++++++++++++++++++++++++++++
+ mm/Kconfig                              | 34 +++++++++++++++++++++++++++++++++
+ mm/vmscan.c                             | 24 +++++++++++++++++++++++
+ 4 files changed, 114 insertions(+)
+
+diff --git a/Documentation/admin-guide/sysctl/vm.rst b/Documentation/admin-guide/sysctl/vm.rst
+index f455fa00c..677c4610b 100644
+--- a/Documentation/admin-guide/sysctl/vm.rst
++++ b/Documentation/admin-guide/sysctl/vm.rst
+@@ -24,6 +24,8 @@ files can be found in mm/swap.c.
+ 
+ Currently, these files are in /proc/sys/vm:
+ 
++- active_file_reserve_hard_kbytes
++- active_file_reserve_soft_kbytes
+ - admin_reserve_kbytes
+ - block_dump
+ - compact_memory
+@@ -77,6 +79,31 @@ Currently, these files are in /proc/sys/vm:
+ - zone_reclaim_mode
+ 
+ 
++active_file_reserve_hard_kbytes
++===============================
++
++Available only when CONFIG_ACTIVE_FILE_RESERVE is set. Active file pages should
++not be evicted under memory pressure if their volume is below this (even with
++no free swap space).
++
++The default value is 250000.
++
++
++active_file_reserve_soft_kbytes
++===============================
++
++Available only when CONFIG_ACTIVE_FILE_RESERVE is set. Active file pages should
++not be evicted under memory pressure if their volume is below this (except when
++other pages cannot be evicted, i.e. the reservation does not work if there is
++no free swap space).
++
++If vm.active_file_reserve_soft_kbytes <= vm.active_file_reserve_hard_kbytes
++than vm.active_file_reserve_hard_kbytes threshold will have higher priority and
++hard reservation will be applied.
++
++The default value is 0.
++
++
+ admin_reserve_kbytes
+ ====================
+ 
+diff --git a/kernel/sysctl.c b/kernel/sysctl.c
+index afad08596..dd5ceabe5 100644
+--- a/kernel/sysctl.c
++++ b/kernel/sysctl.c
+@@ -111,6 +111,19 @@
+ static int sixty = 60;
+ #endif
+ 
++#if defined(CONFIG_ACTIVE_FILE_RESERVE)
++#if CONFIG_ACTIVE_FILE_RESERVE_HARD_KBYTES < 0
++#error "CONFIG_ACTIVE_FILE_RESERVE_HARD_KBYTES should be >= 0"
++#endif
++#if CONFIG_ACTIVE_FILE_RESERVE_SOFT_KBYTES < 0
++#error "CONFIG_ACTIVE_FILE_RESERVE_SOFT_KBYTES should be >= 0"
++#endif
++unsigned long sysctl_active_file_reserve_hard_kbytes __read_mostly =
++	CONFIG_ACTIVE_FILE_RESERVE_HARD_KBYTES;
++unsigned long sysctl_active_file_reserve_soft_kbytes __read_mostly =
++	CONFIG_ACTIVE_FILE_RESERVE_SOFT_KBYTES;
++#endif
++
+ static int __maybe_unused neg_one = -1;
+ static int __maybe_unused two = 2;
+ static int __maybe_unused four = 4;
+@@ -3082,6 +3095,22 @@ static struct ctl_table vm_table[] = {
+ 		.extra2		= SYSCTL_ONE,
+ 	},
+ #endif
++#if defined(CONFIG_ACTIVE_FILE_RESERVE)
++	{
++		.procname	= "active_file_reserve_hard_kbytes",
++		.data		= &sysctl_active_file_reserve_hard_kbytes,
++		.maxlen		= sizeof(sysctl_active_file_reserve_hard_kbytes),
++		.mode		= 0644,
++		.proc_handler	= proc_doulongvec_minmax,
++	},
++	{
++		.procname	= "active_file_reserve_soft_kbytes",
++		.data		= &sysctl_active_file_reserve_soft_kbytes,
++		.maxlen		= sizeof(sysctl_active_file_reserve_soft_kbytes),
++		.mode		= 0644,
++		.proc_handler	= proc_doulongvec_minmax,
++	},
++#endif
+ 	{
+ 		.procname	= "user_reserve_kbytes",
+ 		.data		= &sysctl_user_reserve_kbytes,
+diff --git a/mm/Kconfig b/mm/Kconfig
+index 390165ffb..e4d7416cc 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -63,6 +63,40 @@ config SPARSEMEM_MANUAL
+ 
+ endchoice
+ 
++config ACTIVE_FILE_RESERVE
++	bool "Reserve some active file pages under memory pressure"
++	depends on SYSCTL
++	def_bool y
++	help
++	  Active file pages should not be evicted under memory pressure if their
++	  volume is below selected value.
++
++	  Reservation of active file pages may be used to reduce thrashing under
++	  low-memory conditions.
++
++	  The amount of reserved active file pages may be set via
++	  CONFIG_ACTIVE_FILE_RESERVE_HARD_KBYTES, 
++	  CONFIG_ACTIVE_FILE_RESERVE_SOFT_KBYTES and at runtime via the sysctl
++	  knobs vm.active_file_reserve_hard_kbytes and
++	  vm.active_file_reserve_soft_kbytes.
++
++config ACTIVE_FILE_RESERVE_HARD_KBYTES
++	int "Default value for vm.active_file_reserve_hard_kbytes"
++	depends on ACTIVE_FILE_RESERVE
++	default "250000"
++	help
++	  Active file pages should not be evicted under memory pressure if their
++	  volume is below this (even with no free swap space).
++
++config ACTIVE_FILE_RESERVE_SOFT_KBYTES
++	int "Default value for vm.active_file_reserve_soft_kbytes"
++	depends on ACTIVE_FILE_RESERVE
++	default "0"
++	help
++	  Active file pages should not be evicted under memory pressure if their
++	  volume is below this (except when other pages cannot be evicted, i.e. the
++	  reservation does not work if there is no free swap space).
++
+ config DISCONTIGMEM
+ 	def_bool y
+ 	depends on (!SELECT_MEMORY_MODEL && ARCH_DISCONTIGMEM_ENABLE) || DISCONTIGMEM_MANUAL
+diff --git a/mm/vmscan.c b/mm/vmscan.c
+index 7b4e31eac..88ace2d31 100644
+--- a/mm/vmscan.c
++++ b/mm/vmscan.c
+@@ -186,6 +186,12 @@ static void set_task_reclaim_state(struct task_struct *task,
+ static LIST_HEAD(shrinker_list);
+ static DECLARE_RWSEM(shrinker_rwsem);
+ 
++#if defined(CONFIG_ACTIVE_FILE_RESERVE)
++#define K(x) ((x) << (PAGE_SHIFT - 10))
++extern unsigned long sysctl_active_file_reserve_hard_kbytes;
++extern unsigned long sysctl_active_file_reserve_soft_kbytes;
++#endif
++
+ #ifdef CONFIG_MEMCG
+ /*
+  * We allow subsystems to populate their shrinker-related
+@@ -2418,6 +2424,24 @@ static void get_scan_count(struct lruvec *lruvec, struct scan_control *sc,
+ 			BUG();
+ 		}
+ 
++#if defined(CONFIG_ACTIVE_FILE_RESERVE)
++		if (lru == LRU_ACTIVE_FILE) {
++			unsigned long kib_active_file_now = K(
++				global_node_page_state(NR_ACTIVE_FILE));
++			unsigned long low_scan_granularity = SWAP_CLUSTER_MAX >> sc->priority;
++
++			if (kib_active_file_now <= sysctl_active_file_reserve_hard_kbytes) {
++				nr[lru] = 0;
++				continue;
++			}
++			if (kib_active_file_now <= sysctl_active_file_reserve_soft_kbytes &&
++				scan > low_scan_granularity) {
++				nr[lru] = low_scan_granularity;
++				continue;
++			}
++		}
++#endif
++
+ 		nr[lru] = scan;
+ 	}
+ }
+-- 
+2.11.0
+
