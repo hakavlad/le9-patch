@@ -15,6 +15,16 @@ The current le9 patches are based on patches that were originally created by Man
 
 — https://bugs.launchpad.net/ubuntu/+source/linux/+bug/159356/comments/89
 
+## le9bb
+
+`le9bb*-5.10` patches may be correctly applied to Linux 5.5-5.11.
+
+`le9bb0` just provides two sysctl knobs with 0 values and does not protect file pages by default.
+
+`le9bb1` provides only soft protection (`vm.file_low_kbytes=200000`). This patch may be safly used by default.
+
+`le9bb2` provides hard protection of file pages (`vm.file_min_kbytes=200000`).
+
 ## Effects
 
 - Improving system responsiveness under low-memory conditions;
