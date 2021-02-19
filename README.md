@@ -1,141 +1,26 @@
-# le9*.patch
+
+# le9*.patch: Protect file pages during low memory
+
+The current le9 patches are based on patches that were originally created by Mandeep Singh Baines (2010) and Marcus Linsner (2018-2019). The current le9 patches provide two sysctl knobs for soft and hard protection of file pages. Let's give the floor to the original founders:
+
+> On ChromiumOS, we do not use swap. When memory is low, the only way to free memory is to reclaim pages from the file list. This results in a lot of thrashing under low memory conditions. We see the system become unresponsive for minutes before it eventually OOMs. We also see very slow browser tab switching under low memory. Instead of an unresponsive system, we'd really like the kernel to OOM as soon as it starts to thrash. If it can't keep the working set in memory, then OOM. Losing one of many tabs is a better behaviour for the user than an unresponsive system.
+
+> This patch create a new sysctl, min_filelist_kbytes, which disables reclaim of file-backed pages when when there are less than min_filelist_bytes worth of such pages in the cache. This tunable is handy for low memory systems using solid-state storage where interactive response is more important than not OOMing.
+
+> With this patch and min_filelist_kbytes set to 50000, I see very little block layer activity during low memory. The system stays responsive under low memory and browser tab switching is fast. Eventually, a process a gets killed by OOM. Without this patch, the system gets wedged for minutes before it eventually OOMs.
+
+— https://lore.kernel.org/patchwork/patch/222042/
 
 > The attached kernel patch (applied on top of 4.18.5) that I've tried, almost completely eliminates the disk thrashing(the constant reading of executable(and .so) files on every context switch) associated with freezing the OS and so, with this patch, the OOM-killer is triggered within a maxium of 1 second when it is needed, rather than, without this patch, freeze the OS for minutes(or just a long time, it may even auto reboot depending on your kernel .config options set to panic(reboot) on hang after xx seconds) with constant disk reading well before OOM-killer gets triggered.
 
 — https://bugs.launchpad.net/ubuntu/+source/linux/+bug/159356/comments/89
 
-> Tested on kernel 4.18.5 under Qubes OS, in both dom0 and VMs. It gets
-> rid of the disk thrashing that would otherwise seemingly-permanently
-> freeze a qube (VM) with continous disk reading (seen from dom0 via
-> sudo iotop). With the above, it only freezes for at most 1 second
-> before OOM-killer triggers and restores the RAM by killing some
-> process.
-
-> If anyone has a better idea, please let me know. I am hoping someone
-> knowledgeable can step in :)
-
-> I tried to find a way to also keep Inactive file pages in RAM, just
-> for tests(!) but couldn't figure out how (I'm not a programmer).
-> So, keeping just the Active file pages, seem good enough for now, even
-> though I can clearly see (via vm.block_dump=1) that there are still
-> some pages that are being re-read during high memory pressure, but
-> they for some reason don't cause any(or much) disk thrashing.
-
-— https://lkml.org/lkml/2018/9/10/296
-
-## Origin
-
-The original patches were written in 2018—2019 by Marcus Linsner aka constantoverride aka howaboutsynergy aka user10239615 aka kd4ua506I9uzkaa aka Dq8CokMHloQZw aka GYt2bW and released into the public domain.
-
-- `le9b`—`le9e` patches are early and bad-quality versions;
-- `le9g.patch` just changes `mm/vmscan.c` to reserve fixed (256M) `Active(file)` value;
-- `le9h.patch` changes the four files:
-    - `Documentation/admin-guide/sysctl/vm.rst` changed to add `vm.unevictable_activefile_kbytes` description;
-    - `kernel/sysctl.c` changed to add the new sysctl option: `vm.unevictable_activefile_kbytes`;
-    - `mm/Kconfig` changed to add the new config options:
-        - `RESERVE_ACTIVEFILE_TO_PREVENT_DISK_THRASHING`;
-        - `RESERVE_ACTIVEFILE_KBYTES`;
-    - `mm/vmscan.c` changed to reserve amount of `Active(file)`;
-- `le9i.patch` is similar to `le9h.patch` but also tries to reserve amount of `Inactive(file)`;
-- Original `le9g.patch`, `le9h.patch` and `le9i.patch` patches were tested on Debian 9 with Linux 5.3 and work well;
-- Rebased versions are available:
-    - `le9g-5.9.patch`, `le9h-5.9.patch` and `le9i-5.9.patch` patches may be correctly applied to Linux 5.9 and Linux 5.10.
-
-<details>
- <summary>Why don't you try sending it to linux-mm</summary>
-
-
->multiple reasons
->* this patch is just a proof of concept really, and does not meet the quality I'd accept of myself for sending it upstream (have you read that help text? lol)
->* sending patches to ML requires having read and knowing all the rules for submitting patches - <s>yuck </s>(ie. me lazy)
->* they require real name and I don't want/care to provide one(did it in the past tho)
->* they will want changes to the patch that I won't like to do while still keeping my name attached to the patch (as a example from my prev. time: moving a define whose place was clearly inside a .h near its siblings(CPU stuff), into the .c right above and in the <s>middle</s>(actually top) of the function of the code using it, just because it was the only place this define was used)
->* lazy
->* kernel is so bugged that I learned to not care anymore
-
->But hey if anyone else wants to send it, be my guest, but use your own name (it's ok, you can pretend that you wrote it, you've my permission, or you can even modify it)
->I don't care, I consider the patch in the public domain(and/or all other licenses, for ease of use).
-
-><s>/me out</s>(actually I've decided to resume using this account(since today 03sept2019) - maybe because I'm too lazy to create yet another one everywhere, or I simply want to synergize on this one) - EDIT: nevermind, deleted everything at the end of oct. 2019, but my gists r still available on archive org tho.
-
-— https://www.phoronix.com/forums/forum/phoronix/general-discussion/1118164-yes-linux-does-bad-in-low-ram-memory-pressure-situations-on-the-desktop?p=1120024#post1120024
-</details>
-
-## le9pf
-
-`le9pf-5.10.patch` based on `le9i.patch`. `le9pf-5.10.patch` is `le9i.patch` that was fixed and changed by Oleksandr post-factum Natalenko:
-- https://gitlab.com/post-factum/pf-kernel/-/commit/4b2beea775752f77631d372ad41ce5438d3c7712
-- https://gitlab.com/post-factum/pf-kernel/-/commit/443657c2a3c0e4f4c95283989e2071c817407fef
-
-## le9aa1
-
-This patch provides these kernel config options:
-- `CONFIG_PROTECT_ACTIVE_FILE`;
-- `CONFIG_PROTECT_ACTIVE_FILE_LOW_KBYTES`;
-- `CONFIG_PROTECT_ACTIVE_FILE_LOW_RIGIDITY`;
-- `CONFIG_PROTECT_ACTIVE_FILE_MIN_KBYTES`
-
-and these sysctl knobs:
-- `vm.active_file_low_kbytes` (250000 by default);
-- `vm.active_file_low_rigidity` (4 by default, pretty soft protection; increase the value to make the soft protection harder);
-- `vm.active_file_min_kbytes` (0 by default, hard protection disabled).
-
-`vm.active_file_low_rigidity` may be used to control hardness of `vm.active_file_low_kbytes` protection.
-
-## le9ab
-
-This patch provides these kernel config options:
-- `CONFIG_ACTIVE_FILE_RESERVE`;
-- `CONFIG_ACTIVE_FILE_RESERVE_HARD_KBYTES`;
-- `CONFIG_ACTIVE_FILE_RESERVE_SOFT_KBYTES`;
-
-and these sysctl knobs:
-- `vm.active_file_reserve_hard_kbytes` (0 by default, hard protection disabled);
-- `vm.active_file_reserve_soft_kbytes` (200000 by default).
-
-The hardness of the soft protection depends on `vm.swappiness`. Reducing `vm.swappiness` weakens soft reservation.
-
-This is most safe version of the le9 patches and recommended to use by default.
-
-From `vm.rst`:
-```
-active_file_reserve_hard_kbytes
-===============================
-
-Available only when CONFIG_ACTIVE_FILE_RESERVE is set. Active file pages should
-not be evicted under memory pressure if their volume is below this (even with
-no free swap space).
-
-The default value is 0.
-
-
-active_file_reserve_soft_kbytes
-===============================
-
-Available only when CONFIG_ACTIVE_FILE_RESERVE is set. Active file pages should
-not be evicted under memory pressure if their volume is below this (except when
-other pages cannot be evicted, i.e. the reservation does not work if there is
-no free swap space).
-
-If vm.active_file_reserve_soft_kbytes <= vm.active_file_reserve_hard_kbytes
-than vm.active_file_reserve_hard_kbytes threshold will have higher priority and
-hard reservation will be applied.
-
-The default value is 200000.
-```
-
-## le9ab2
-
-This is the same as le9ab but with other default values:
-- `vm.active_file_reserve_hard_kbytes=250000`;
-- `vm.active_file_reserve_soft_kbytes=0`.
-
 ## Effects
 
-- OOM killer comes faster (with hard protection);
-- Fast system reclaiming after OOM;
 - Improving system responsiveness under low-memory conditions;
 - Improving performans in I/O bound tasks under memory pressure.
+- OOM killer comes faster (with hard protection);
+- Fast system reclaiming after OOM;
 
 ## Testing
 
@@ -150,31 +35,24 @@ These tools may be used to monitor memory and PSI metrics during stress tests:
 ## Warnings
 
 - These patches were written by an amateur. Use at your own risk;
-- `MemAvailable` may be calculated incorrectly (reserved `vm.unevictable_activefile_kbytes` value cannot be reclaimed);
-- Setting too high `vm.unevictable_activefile_kbytes` can lead to unwanted and too aggressive swapping out. Don't set too high `vm.unevictable_activefile_kbytes` value;
-- Don't mix reserving `Active(file)` and `Inactive(file)` at the same time. Choose one.
-
-<details>
- <summary>Show images</summary>
-
-![pic](https://i.ibb.co/8cNsJXT/Virtual-Box-deb9-2-09-12-2020-23-31-54.png)
-![pic](https://i.ibb.co/9p9q698/Virtual-Box-deb9-2-09-12-2020-23-33-42.png)
-</details>
+- `MemAvailable` may be calculated incorrectly (reserved `vm.file_min_kbytes` value cannot be reclaimed);
+- Hard protection of file pages may invoke `Fatal IO error 11` [#5](https://github.com/hakavlad/le9-patch/issues/5) with DRM/i915 driver. [Disabling](https://github.com/hakavlad/disable-i915-gem-shrinker) DRM/i915 GEM shrinker can prevent this.
 
 ## Need to review 
 
 These patches need to be reviewed by linux-mm peoples.
 
-## Install
+## How to get it
 
-- The kernel build with `le9aa1-5.10.patch` is available for Fedora 33: https://copr.fedorainfracloud.org/coprs/atim/kernel-futex/;
-- Also [pf-kernel](https://gitlab.com/post-factum/pf-kernel/-/wikis/README) provides `Active(file)` protection by default since [v5.10-pf2](https://gitlab.com/post-factum/pf-kernel/-/tags/v5.10-pf2) [[AUR package](https://aur.archlinux.org/packages/linux-pf/)].
+- The kernel build with the patch is available for Fedora 33: https://copr.fedorainfracloud.org/coprs/atim/kernel-futex/;
+- [pf-kernel](https://gitlab.com/post-factum/pf-kernel/-/wikis/README) provides the file pages protection (with own le9 implementation) by default since [v5.10-pf2](https://gitlab.com/post-factum/pf-kernel/-/tags/v5.10-pf2).
 
-## See also
+## Resources
 
 - RFC: vmscan: add min_filelist_kbytes sysctl for protecting the working set (2010)
     - https://lore.kernel.org/patchwork/patch/222042/
     - https://lkml.org/lkml/2010/10/28/289/
+- CHROMIUM: vmscan: add min_filelist_kbytes sysctl for protecting the working set (2020) https://chromium.googlesource.com/chromiumos/third_party/kernel-next/+/545e2917dbd863760a51379de8c26631e667c563%5E%21/
 - le9 main thread https://web.archive.org/web/20191018023405/https://gist.github.com/constantoverride/84eba764f487049ed642eb2111a20830
 - When DMA is disabled system freeze on high memory usage (since 2007) https://bugs.launchpad.net/ubuntu/+source/linux/+bug/159356
 - Let's talk about the elephant in the room - the Linux kernel's inability to gracefully handle low memory pressure
@@ -182,13 +60,11 @@ These patches need to be reviewed by linux-mm peoples.
     - https://www.phoronix.com/forums/forum/phoronix/general-discussion/1118164-yes-linux-does-bad-in-low-ram-memory-pressure-situations-on-the-desktop
     - https://news.ycombinator.com/item?id=20620545
     - https://www.reddit.com/r/linux/comments/cmg48b/lets_talk_about_the_elephant_in_the_room_the/
-- https://stackoverflow.com/questions/52067753/how-to-keep-executable-code-in-memory-even-under-memory-pressure-in-linux
+- How to keep executable code in memory even under memory pressure ? in Linux https://stackoverflow.com/questions/52067753/how-to-keep-executable-code-in-memory-even-under-memory-pressure-in-linux
 - Howto prevent kernel from evicting code pages ever? (to avoid disk thrashing when about to run out of RAM)
     - https://stackoverflow.com/questions/51927528/how-to-prevent-linux-kernel-from-evicting-file-backed-executable-pages-when-abou
     - https://lkml.org/lkml/2018/8/22/176
     - https://lkml.org/lkml/2018/9/10/296
-- M. Gorman - Understanding the Linux Virtual Memory Manager http://gauss.ececs.uc.edu/Courses/c4029/code/memory/linux-vm-mm.pdf
-- Unevictable LRU Infrastructure https://www.kernel.org/doc/html/latest/vm/unevictable-lru.html
 - OOM killer doesn't work properly, leads to a frozen OS https://unix.stackexchange.com/questions/373312/oom-killer-doesnt-work-properly-leads-to-a-frozen-os/458855#458855
 - `le9b.patch` https://launchpadlibrarian.net/386196358/le9b.patch
 - `le9d.patch` https://launchpadlibrarian.net/389887258/le9d.patch, https://lkml.org/lkml/diff/2018/9/10/296/1
@@ -201,6 +77,44 @@ These patches need to be reviewed by linux-mm peoples.
     - https://www.phoronix.com/forums/forum/phoronix/general-discussion/1118164-yes-linux-does-bad-in-low-ram-memory-pressure-situations-on-the-desktop?p=1119792#post1119792
 - `le9i.patch` https://web.archive.org/web/20191018023434/https://gist.github.com/howaboutsynergy/cbfa3cc5e8093c26c29f5d411c16e6b1
 - Bug 111601 - regression: deadlock-freeze due to kernel commit aa56a292ce623734ddd30f52d73f527d1f3529b5 + `memfreeze`, `le9i.patch`, `le9h.patch` https://bugs.freedesktop.org/show_bug.cgi?id=111601
-- https://gitlab.freedesktop.org/seanpaul/dpu-staging/commit/0b992f2dbb044896c3584e10bd5b97cf41e2ec6d
+- Merge origin/chromeos-4.19-lowmem https://gitlab.freedesktop.org/seanpaul/dpu-staging/commit/0b992f2dbb044896c3584e10bd5b97cf41e2ec6d
 - https://abf.io/mikhailnov/kernel-desktop-4.15/blob/master/Chromium-OS-low-memory-patchset.patch
-- Discussing soft `Active(file)` protection with post-factum and mikhailnov - https://www.linux.org.ru/news/kernel/16052362?cid=16055197 and further.
+- Discussing protection of file pages with post-factum and mikhailnov - https://www.linux.org.ru/news/kernel/16052362?cid=16055197 and further.
+- LKML: Marcus Linsner: Howto prevent kernel from evicting code pages ever? (to avoid disk thrashing when about to run out of RAM) https://lkml.org/lkml/2018/8/22/176
+- How to prevent Linux kernel from evicting file-backed executable pages when about to run out of RAM? (which would otherwise cause disk-thrashing) https://stackoverflow.com/questions/51927528/how-to-prevent-linux-kernel-from-evicting-file-backed-executable-pages-when-abou
+- mm/concepts https://www.kernel.org/doc/html/latest/admin-guide/mm/concepts.html
+- M. Gorman - Understanding the Linux Virtual Memory Manager https://www.kernel.org/doc/gorman/
+- Unevictable LRU Infrastructure https://www.kernel.org/doc/html/latest/vm/unevictable-lru.html
+- Why is kswapd0 running on a computer with no swap? https://askubuntu.com/questions/432809/why-is-kswapd0-running-on-a-computer-with-no-swap/432827
+- This patch looks like it could be merged with mainline. Why don't you try sending it to linux-mm? https://www.phoronix.com/forums/forum/phoronix/general-discussion/1118164-yes-linux-does-bad-in-low-ram-memory-pressure-situations-on-the-desktop/page17#post1120024
+- Ubuntu freeze when low memory https://askubuntu.com/questions/1017884/ubuntu-freeze-when-low-memory
+- How to avoid high latency near OOM situation? https://unix.stackexchange.com/questions/423261/how-to-avoid-high-latency-near-oom-situation
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
