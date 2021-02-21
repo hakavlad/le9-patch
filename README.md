@@ -17,7 +17,7 @@ The current le9 patches are based on patches that were originally created by Man
 
 ## le9bb
 
-`le9bb*-5.10` patches may be correctly applied to Linux 5.5-5.11.
+`le9bb*-5.10` patches may be correctly applied to Linux 5.10—5.11.
 
 `le9bb0` just provides two sysctl knobs with 0 values and does not protect file pages by default.
 
@@ -28,9 +28,9 @@ The current le9 patches are based on patches that were originally created by Man
 ## Effects
 
 - Improving system responsiveness under low-memory conditions;
-- Improving performans in I/O bound tasks under memory pressure.
+- Improving performans in I/O bound tasks under memory pressure;
 - OOM killer comes faster (with hard protection);
-- Fast system reclaiming after OOM;
+- Fast system reclaiming after OOM.
 
 ## Testing
 
@@ -99,32 +99,3 @@ These patches need to be reviewed by linux-mm peoples.
 - This patch looks like it could be merged with mainline. Why don't you try sending it to linux-mm? https://www.phoronix.com/forums/forum/phoronix/general-discussion/1118164-yes-linux-does-bad-in-low-ram-memory-pressure-situations-on-the-desktop/page17#post1120024
 - Ubuntu freeze when low memory https://askubuntu.com/questions/1017884/ubuntu-freeze-when-low-memory
 - How to avoid high latency near OOM situation? https://unix.stackexchange.com/questions/423261/how-to-avoid-high-latency-near-oom-situation
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
