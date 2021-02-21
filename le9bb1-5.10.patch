@@ -1,24 +1,24 @@
-From e1523504b17f22dc68ea6d041eec9d9814fa0931 Mon Sep 17 00:00:00 2001
+From 74d671a3bc0af9267d523b4a67b716fa1b39b716 Mon Sep 17 00:00:00 2001
 From: Alexey Avramov <hakavlad@gmail.com>
-Date: Sat, 20 Feb 2021 06:28:37 +0900
-Subject: Subject: [PATCH] Protect file pages under memory pressure
+Date: Mon, 22 Feb 2021 08:32:59 +0900
+Subject: [PATCH] Protect file pages under memory pressure
 
-The patch provides sysctl knobs to control file pages eviction
-in low memory conditions.
+The patch provides sysctl knobs for protecting file pages during low
+memory conditions.
 
-Protecting file pages may be used to prevent thrashing and reducing I/O
-under memory pressure. Hard protection of file pages may be used to avoid
-high latency and prevent livelock in near OOM conditions.
+Protection of file pages may be used to prevent thrashing and reducing
+I/O under memory pressure. Hard protection of file pages may be used
+to avoid high latency and prevent livelock in near-OOM conditions.
 
 The vm.file_low_kbytes sysctl knob provides *best-effort* protection
-for file pages. The file pages on the current node won't be reclaimed
-uder memory pressure when their volume below vm.file_low_kbytes
+of file pages. The file pages on the current node won't be reclaimed
+uder memory pressure when their volume is below vm.file_low_kbytes
 *unless* we threaten to OOM or have no swap space or vm.swappiness=0.
 The default value is 200000.
 
-The vm.file_min_kbytes sysctl knob provides *hard* protection for
+The vm.file_min_kbytes sysctl knob provides *hard* protection of
 file pages. The file pages on the current node won't be reclaimed
-under memory pressure when their volume below vm.file_min_kbytes.
+under memory pressure when their volume is below vm.file_min_kbytes.
 The default value is 0.
 ---
  Documentation/admin-guide/sysctl/vm.rst | 31 ++++++++++++++++++++++++
@@ -29,7 +29,7 @@ The default value is 0.
  5 files changed, 141 insertions(+)
 
 diff --git a/Documentation/admin-guide/sysctl/vm.rst b/Documentation/admin-guide/sysctl/vm.rst
-index f455fa00c..83ad0c11e 100644
+index f455fa00c..73fe12a80 100644
 --- a/Documentation/admin-guide/sysctl/vm.rst
 +++ b/Documentation/admin-guide/sysctl/vm.rst
 @@ -38,6 +38,8 @@ Currently, these files are in /proc/sys/vm:
@@ -69,7 +69,7 @@ index f455fa00c..83ad0c11e 100644
 +vm.file_min_kbytes.
 +
 +Hard protection of file pages may be used to avoid high latency and
-+prevent livelock in near OOM conditions.
++prevent livelock in near-OOM conditions.
 +
 +The default value is 0.
 +
@@ -141,7 +141,7 @@ index afad08596..4261e5808 100644
  		.procname	= "user_reserve_kbytes",
  		.data		= &sysctl_user_reserve_kbytes,
 diff --git a/mm/Kconfig b/mm/Kconfig
-index 390165ffb..2c31f131d 100644
+index 390165ffb..ae2623350 100644
 --- a/mm/Kconfig
 +++ b/mm/Kconfig
 @@ -63,6 +63,40 @@ config SPARSEMEM_MANUAL
@@ -155,11 +155,11 @@ index 390165ffb..2c31f131d 100644
 +	help
 +	  Protection of file pages may be used to prevent thrashing
 +	  and reduce I/O under memory pressure. Hard protection of file pages
-+	  may be used to avoid high latency and prevent livelock in near
-+	  OOM conditions.
++	  may be used to avoid high latency and prevent livelock in near-OOM
++	  conditions.
 +	  
-+	  This option provides two sysctl knobs to control eviction of
-+	  file pages under memory pressure.
++	  This option provides two sysctl knobs for protecting file pages
++	  under memory pressure.
 +
 +config PROTECT_FILE_LOW_KBYTES
 +	int "Default value for vm.file_low_kbytes"
@@ -186,7 +186,7 @@ index 390165ffb..2c31f131d 100644
  	def_bool y
  	depends on (!SELECT_MEMORY_MODEL && ARCH_DISCONTIGMEM_ENABLE) || DISCONTIGMEM_MANUAL
 diff --git a/mm/vmscan.c b/mm/vmscan.c
-index 7b4e31eac..b4f8c80df 100644
+index 7b4e31eac..8183d0ee3 100644
 --- a/mm/vmscan.c
 +++ b/mm/vmscan.c
 @@ -120,6 +120,21 @@ struct scan_control {
@@ -211,7 +211,7 @@ index 7b4e31eac..b4f8c80df 100644
  	/* Allocation order */
  	s8 order;
  
-@@ -2274,6 +2289,18 @@ static void get_scan_count(struct lruvec *lruvec, struct scan_control *sc,
+@@ -2282,6 +2297,18 @@ static void get_scan_count(struct lruvec *lruvec, struct scan_control *sc,
  		goto out;
  	}
  
@@ -228,15 +228,15 @@ index 7b4e31eac..b4f8c80df 100644
 +#endif
 +
  	/*
- 	 * If the system is almost out of file pages, force-scan anon.
- 	 */
+ 	 * If there is enough inactive page cache, we do not reclaim
+ 	 * anything from the anonymous working right now.
 @@ -2418,6 +2445,15 @@ static void get_scan_count(struct lruvec *lruvec, struct scan_control *sc,
  			BUG();
  		}
  
 +#if defined(CONFIG_PROTECT_FILE)
 +		/*
-+		 * Don't reclaim file pages when ther volume is below
++		 * Don't reclaim file pages when their volume is below
 +		 * vm.file_min_kbytes.
 +		 */
 +		if (file && sc->file_is_min)
