@@ -138,45 +138,69 @@ def signal_handler(signum, frame):
         round(min_dict['MA'] / 1024, 1),
         round(max_dict['MA'] / 1024, 1)))
 
-    log('  BU: min {}, max {}'.format(
-        round(min_dict['BU'] / 1024, 1),
-        round(max_dict['BU'] / 1024, 1)))
+    if mode == '1':
 
-    log('  CA: min {}, max {}'.format(
-        round(min_dict['CA'] / 1024, 1),
-        round(max_dict['CA'] / 1024, 1)))
+        log('  A:  min {}, max {}'.format(
+            round(min_dict['A'] / 1024, 1),
+            round(max_dict['A'] / 1024, 1)))
 
-    log('  AA: min {}, max {}'.format(
-        round(min_dict['AA'] / 1024, 1),
-        round(max_dict['AA'] / 1024, 1)))
+        log('  F:  min {}, max {}'.format(
+            round(min_dict['F'] / 1024, 1),
+            round(max_dict['F'] / 1024, 1)))
 
-    log('  IA: min {}, max {}'.format(
-        round(min_dict['IA'] / 1024, 1),
-        round(max_dict['IA'] / 1024, 1)))
+        log('  AF: min {}, max {}'.format(
+            round(min_dict['AF'] / 1024, 1),
+            round(max_dict['AF'] / 1024, 1)))
 
-    log('  AF: min {}, max {}'.format(
-        round(min_dict['AF'] / 1024, 1),
-        round(max_dict['AF'] / 1024, 1)))
+        log('  IF: min {}, max {}'.format(
+            round(min_dict['IF'] / 1024, 1),
+            round(max_dict['IF'] / 1024, 1)))
 
-    log('  IF: min {}, max {}'.format(
-        round(min_dict['IF'] / 1024, 1),
-        round(max_dict['IF'] / 1024, 1)))
+        log('  SF: min {}, max {}'.format(
+            round(min_dict['SF'] / 1024, 1),
+            round(max_dict['SF'] / 1024, 1)))
 
-    log('  SF: min {}, max {}'.format(
-        round(min_dict['SF'] / 1024, 1),
-        round(max_dict['SF'] / 1024, 1)))
+    else:
 
-    log('  SU: min {}, max {}'.format(
-        round(min_dict['SU'] / 1024, 1),
-        round(max_dict['SU'] / 1024, 1)))
+        log('  BU: min {}, max {}'.format(
+            round(min_dict['BU'] / 1024, 1),
+            round(max_dict['BU'] / 1024, 1)))
 
-    log('  SH: min {}, max {}'.format(
-        round(min_dict['SH'] / 1024, 1),
-        round(max_dict['SH'] / 1024, 1)))
+        log('  CA: min {}, max {}'.format(
+            round(min_dict['CA'] / 1024, 1),
+            round(max_dict['CA'] / 1024, 1)))
 
-    log('  SR: min {}, max {}'.format(
-        round(min_dict['SR'] / 1024, 1),
-        round(max_dict['SR'] / 1024, 1)))
+        log('  AA: min {}, max {}'.format(
+            round(min_dict['AA'] / 1024, 1),
+            round(max_dict['AA'] / 1024, 1)))
+
+        log('  IA: min {}, max {}'.format(
+            round(min_dict['IA'] / 1024, 1),
+            round(max_dict['IA'] / 1024, 1)))
+
+        log('  AF: min {}, max {}'.format(
+            round(min_dict['AF'] / 1024, 1),
+            round(max_dict['AF'] / 1024, 1)))
+
+        log('  IF: min {}, max {}'.format(
+            round(min_dict['IF'] / 1024, 1),
+            round(max_dict['IF'] / 1024, 1)))
+
+        log('  SF: min {}, max {}'.format(
+            round(min_dict['SF'] / 1024, 1),
+            round(max_dict['SF'] / 1024, 1)))
+
+        log('  SU: min {}, max {}'.format(
+            round(min_dict['SU'] / 1024, 1),
+            round(max_dict['SU'] / 1024, 1)))
+
+        log('  SH: min {}, max {}'.format(
+            round(min_dict['SH'] / 1024, 1),
+            round(max_dict['SH'] / 1024, 1)))
+
+        log('  SR: min {}, max {}'.format(
+            round(min_dict['SR'] / 1024, 1),
+            round(max_dict['SR'] / 1024, 1)))
 
     log('Exit.')
 
@@ -203,9 +227,19 @@ parser.add_argument(
 )
 
 
+parser.add_argument(
+    '-m',
+    '--mode',
+    help="""mode (1 or 2)""",
+    default='1',
+    type=str
+)
+
+
 args = parser.parse_args()
 interval = args.interval
 log_file = args.log
+mode = args.mode
 
 
 if log_file is None:
@@ -276,7 +310,12 @@ for i in sig_list:
     signal(i, signal_handler)
 
 
-log('Starting mem2log with interval {}s'.format(interval))
+if not (mode == '1' or mode == '2'):
+    print('ERROR: invalid mode. Valid values are 1 and 2. Exit.')
+    exit(1)
+
+
+log('Starting mem2log with interval {}s, mode: {}'.format(interval, mode))
 
 
 if separate_log:
@@ -296,65 +335,153 @@ log(
 
 log('--')
 
-log(
-    'MA is MemAvailable, '
-    'BU is Buffers, '
-    'CA is Cached'
-)
-
-log(
-    'AA is Active(anon), '
-    'IA is Inactive(anon), '
-    'AF is Active(file), '
-    'IF is Inactive(file)'
-)
-
-log(
-    'SF is SwapFree, '
-    'SU is `SwapTotal - SwapFree`, '
-    'SH is Shmem, '
-    'SR is SReclaimable'
-)
-
-log('--')
-
 
 min_dict = dict()
 max_dict = dict()
 
 
+if mode == '2':
+
+    log(
+        'MA is MemAvailable, '
+        'BU is Buffers, '
+        'CA is Cached'
+    )
+
+    log(
+        'AA is Active(anon), '
+        'IA is Inactive(anon), '
+        'AF is Active(file), '
+        'IF is Inactive(file)'
+    )
+
+    log(
+        'SF is SwapFree, '
+        'SU is `SwapTotal - SwapFree`, '
+        'SH is Shmem, '
+        'SR is SReclaimable'
+    )
+
+    log('--')
+
+    while True:
+
+        (mem_available, buffers, cached, active_anon, inactive_anon,
+         active_file, inactive_file, swap_total, swap_free, shmem, sreclaimable
+         ) = check_meminfo()
+
+        swap_used = swap_total - swap_free
+
+        if ('MA' not in max_dict or mem_available > max_dict['MA']):
+            max_dict['MA'] = mem_available
+        if ('MA' not in min_dict or mem_available < min_dict['MA']):
+            min_dict['MA'] = mem_available
+
+        if ('BU' not in max_dict or buffers > max_dict['BU']):
+            max_dict['BU'] = buffers
+        if ('BU' not in min_dict or buffers < min_dict['BU']):
+            min_dict['BU'] = buffers
+
+        if ('CA' not in max_dict or cached > max_dict['CA']):
+            max_dict['CA'] = cached
+        if ('CA' not in min_dict or cached < min_dict['CA']):
+            min_dict['CA'] = cached
+
+        if ('AA' not in max_dict or active_anon > max_dict['AA']):
+            max_dict['AA'] = active_anon
+        if ('AA' not in min_dict or active_anon < min_dict['AA']):
+            min_dict['AA'] = active_anon
+
+        if ('IA' not in max_dict or inactive_anon > max_dict['IA']):
+            max_dict['IA'] = inactive_anon
+        if ('IA' not in min_dict or inactive_anon < min_dict['IA']):
+            min_dict['IA'] = inactive_anon
+
+        if ('AF' not in max_dict or active_file > max_dict['AF']):
+            max_dict['AF'] = active_file
+        if ('AF' not in min_dict or active_file < min_dict['AF']):
+            min_dict['AF'] = active_file
+
+        if ('IF' not in max_dict or inactive_file > max_dict['IF']):
+            max_dict['IF'] = inactive_file
+        if ('IF' not in min_dict or inactive_file < min_dict['IF']):
+            min_dict['IF'] = inactive_file
+
+        if ('SF' not in max_dict or swap_free > max_dict['SF']):
+            max_dict['SF'] = swap_free
+        if ('SF' not in min_dict or swap_free < min_dict['SF']):
+            min_dict['SF'] = swap_free
+
+        if ('SU' not in max_dict or swap_used > max_dict['SU']):
+            max_dict['SU'] = swap_used
+        if ('SU' not in min_dict or swap_used < min_dict['SU']):
+            min_dict['SU'] = swap_used
+
+        if ('SH' not in max_dict or shmem > max_dict['SH']):
+            max_dict['SH'] = shmem
+        if ('SH' not in min_dict or shmem < min_dict['SH']):
+            min_dict['SH'] = shmem
+
+        if ('SR' not in max_dict or sreclaimable > max_dict['SR']):
+            max_dict['SR'] = sreclaimable
+        if ('SR' not in min_dict or sreclaimable < min_dict['SR']):
+            min_dict['SR'] = sreclaimable
+
+        log(
+            'MA {}, BU {}, CA {}, AA {}, IA {}, AF {}, IF {}, '
+            'SF {}, SU {}, SH {}, SR {}'.format(
+                round(mem_available / 1024, 1),
+                round(buffers / 1024, 1),
+                round(cached / 1024, 1),
+                round(active_anon / 1024, 1),
+                round(inactive_anon / 1024, 1),
+                round(active_file / 1024, 1),
+                round(inactive_file / 1024, 1),
+                round(swap_free / 1024, 1),
+                round(swap_used / 1024, 1),
+                round(shmem / 1024, 1),
+                round(sreclaimable / 1024, 1)
+            ))
+
+        sleep(interval)
+
+
+log(
+    'MA is MemAvailable, '
+    'A is Anon, '
+    'F is File'
+)
+log(
+    'AF is Active(file), '
+    'IF is Inactive(file), '
+    'SF is SwapFree'
+)
+
+log('--')
+
 while True:
 
-    (mem_available, buffers, cached, active_anon, inactive_anon, active_file,
-     inactive_file, swap_total, swap_free, shmem, sreclaimable
-     ) = check_meminfo()
+    (mem_available, _, _, active_anon, inactive_anon, active_file,
+     inactive_file, swap_total, swap_free, _, _) = check_meminfo()
 
     swap_used = swap_total - swap_free
+    anon = active_anon + inactive_anon
+    filez = active_file + inactive_file
 
     if ('MA' not in max_dict or mem_available > max_dict['MA']):
         max_dict['MA'] = mem_available
     if ('MA' not in min_dict or mem_available < min_dict['MA']):
         min_dict['MA'] = mem_available
 
-    if ('BU' not in max_dict or buffers > max_dict['BU']):
-        max_dict['BU'] = buffers
-    if ('BU' not in min_dict or buffers < min_dict['BU']):
-        min_dict['BU'] = buffers
+    if ('A' not in max_dict or anon > max_dict['A']):
+        max_dict['A'] = anon
+    if ('A' not in min_dict or anon < min_dict['A']):
+        min_dict['A'] = anon
 
-    if ('CA' not in max_dict or cached > max_dict['CA']):
-        max_dict['CA'] = cached
-    if ('CA' not in min_dict or cached < min_dict['CA']):
-        min_dict['CA'] = cached
-
-    if ('AA' not in max_dict or active_anon > max_dict['AA']):
-        max_dict['AA'] = active_anon
-    if ('AA' not in min_dict or active_anon < min_dict['AA']):
-        min_dict['AA'] = active_anon
-
-    if ('IA' not in max_dict or inactive_anon > max_dict['IA']):
-        max_dict['IA'] = inactive_anon
-    if ('IA' not in min_dict or inactive_anon < min_dict['IA']):
-        min_dict['IA'] = inactive_anon
+    if ('F' not in max_dict or filez > max_dict['F']):
+        max_dict['F'] = filez
+    if ('F' not in min_dict or filez < min_dict['F']):
+        min_dict['F'] = filez
 
     if ('AF' not in max_dict or active_file > max_dict['AF']):
         max_dict['AF'] = active_file
@@ -376,30 +503,16 @@ while True:
     if ('SU' not in min_dict or swap_used < min_dict['SU']):
         min_dict['SU'] = swap_used
 
-    if ('SH' not in max_dict or shmem > max_dict['SH']):
-        max_dict['SH'] = shmem
-    if ('SH' not in min_dict or shmem < min_dict['SH']):
-        min_dict['SH'] = shmem
-
-    if ('SR' not in max_dict or sreclaimable > max_dict['SR']):
-        max_dict['SR'] = sreclaimable
-    if ('SR' not in min_dict or sreclaimable < min_dict['SR']):
-        min_dict['SR'] = sreclaimable
-
     log(
-        'MA {}, BU {}, CA {}, AA {}, IA {}, AF {}, IF {}, '
-        'SF {}, SU {}, SH {}, SR {}'.format(
-            round(mem_available / 1024, 1),
-            round(buffers / 1024, 1),
-            round(cached / 1024, 1),
-            round(active_anon / 1024, 1),
-            round(inactive_anon / 1024, 1),
-            round(active_file / 1024, 1),
-            round(inactive_file / 1024, 1),
-            round(swap_free / 1024, 1),
-            round(swap_used / 1024, 1),
-            round(shmem / 1024, 1),
-            round(sreclaimable / 1024, 1)
+        'MA={} ({}%), A={}, F={} (AF={}, IF={}), SF={} ({}%)'.format(
+            round(mem_available / 1024),
+            round(mem_available / mem_total * 100, 1),
+            round(anon / 1024),
+            round(filez / 1024),
+            round(active_file / 1024),
+            round(inactive_file / 1024),
+            round(swap_free / 1024),
+            round(swap_free / (swap_total + 1) * 100, 1)
         ))
 
     sleep(interval)
