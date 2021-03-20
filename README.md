@@ -1,7 +1,7 @@
 
-# [PATCH] mm: protect file pages during low memory
+# Protect clean file pages under memory pressure
 
-Protection of file pages may be used to prevent thrashing, reducing I/O under memory pressure, avoid high latency and prevent livelock in near-OOM conditions. The current le9 patches provide two sysctl knobs for soft and hard protection of file pages. The current le9 patches are based on patches that were originally created by Mandeep Singh Baines (2010) and Marcus Linsner (2018-2019). Let's give the floor to the original founders:
+Protection of clean file pages (page cache) may be used to prevent thrashing, reducing I/O under memory pressure, avoid high latency and prevent livelock in near-OOM conditions. The current le9 patches provide two sysctl knobs for soft and hard protection of clean file pages. The current le9 patches are based on patches that were originally created by Mandeep Singh Baines (2010) and Marcus Linsner (2018-2019). Let's give the floor to the original founders:
 
 > On ChromiumOS, we do not use swap. When memory is low, the only way to free memory is to reclaim pages from the file list. This results in a lot of thrashing under low memory conditions. We see the system become unresponsive for minutes before it eventually OOMs. We also see very slow browser tab switching under low memory. Instead of an unresponsive system, we'd really like the kernel to OOM as soon as it starts to thrash. If it can't keep the working set in memory, then OOM. Losing one of many tabs is a better behaviour for the user than an unresponsive system.
 
@@ -15,15 +15,21 @@ Protection of file pages may be used to prevent thrashing, reducing I/O under me
 
 — https://bugs.launchpad.net/ubuntu/+source/linux/+bug/159356/comments/89
 
-## le9bb
+Original le9 patches protected active file pages. Current versions (le9ca) protect clean file pages (`Active(file)` + `Inactive(file)` - `Dirty`). 
 
-`le9bb*-5.10` patches may be correctly applied to Linux 5.10—5.11.
+## le9ca patches
 
-`le9bb0` just provides two sysctl knobs with 0 values and does not protect file pages by default.
+`le9ca*-5.10` patches may be correctly applied to Linux 5.10—5.11.
 
-`le9bb1` provides only soft protection (`vm.file_low_kbytes=200000`). This patch may be safly used by default.
+The `vm.clean_file_low_kbytes` sysctl knob provides *best-effort* protection of clean file pages. The clean file pages on the current node won't be reclaimed uder memory pressure when their volume is below `vm.clean_file_low_kbytes` *unless* we threaten to OOM or have no swap space or vm.swappiness=0.
 
-`le9bb2` provides hard protection of file pages (`vm.file_min_kbytes=200000`).
+The `vm.clean_file_min_kbytes` sysctl knob provides *hard* protection of clean file pages. The clean file pages on the current node won't be reclaimed under memory pressure when their volume is below vm.file_min_kbytes.
+
+`le9ca0` just provides two sysctl knobs with 0 values and does not protect clean file pages by default.
+
+`le9ca1` provides only soft protection (`vm.clean_file_low_kbytes=150000`). This patch may be safly used by default.
+
+`le9ca2` provides hard protection of clean file pages (`vm.file_low_kbytes=250000`, `vm.file_min_kbytes=200000`).
 
 ## Effects
 
