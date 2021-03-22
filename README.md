@@ -46,15 +46,15 @@ These tools may be used to monitor memory and PSI metrics during stress tests:
 
 ## Demo
 
-- https://youtu.be/c5bAOJkX_uc - Linux 5.9 + `le9i-5.9.patch`, playing supertuxkart with 7 `tail /dev/zero` in background. `vm.unevictable_activefile_kbytes=1000000`, `vm.unevictable_inactivefile_kbytes=0`.
+- https://youtu.be/c5bAOJkX_uc - Linux 5.9 + `le9i-5.9.patch`, playing supertuxkart with 7 `while true; do tail /dev/zero` in background. `vm.unevictable_activefile_kbytes=1000000`, `vm.unevictable_inactivefile_kbytes=0`.
 - https://youtu.be/d4Sc80TMEtA - webkit2gtk3 compilation with zram-fraction=1, max-zram-size=8192. No hangs, no heavily freezes, system was responsive for all time during webkit2gtk3 compilation.
-- https://www.youtube.com/watch?v=iU3ikgNgp3M - The Linux (with le9 patch) kernel's ability to gracefully handle memory pressure. Boot with `mem=4G`, no swap space, opening chromium tabs, no hangs. The killer comes without delay.
+- https://youtu.be/iU3ikgNgp3M - The Linux (with le9 patch) kernel's ability to gracefully handle memory pressure. Boot with `mem=4G`, no swap space, opening chromium tabs, no hangs. The killer comes without delay. This is how le9 patch fixes the problem described [here](https://lore.kernel.org/lkml/d9802b6a-949b-b327-c4a6-3dbca485ec20@gmx.com/).
 
 ## Warnings
 
 - These patches were written by an amateur. Use at your own risk;
-- `MemAvailable` may be calculated incorrectly (reserved `vm.file_min_kbytes` value cannot be reclaimed);
-- Hard protection of file pages may invoke `Fatal IO error 11` [#5](https://github.com/hakavlad/le9-patch/issues/5) with DRM/i915 driver. [Disabling](https://github.com/hakavlad/disable-i915-gem-shrinker) DRM/i915 GEM shrinker can prevent this.
+- `MemAvailable` may be calculated incorrectly (protected `vm.clean_file_min_kbytes` value cannot be reclaimed);
+- Hard protection of file pages may invoke `Fatal IO error 11` [#5](https://github.com/hakavlad/le9-patch/issues/5) and even `kernel: Oops` [#6](https://github.com/hakavlad/le9-patch/issues/6) with DRM/i915 driver. [Disabling](https://github.com/hakavlad/disable-i915-gem-shrinker) DRM/i915 GEM shrinker can prevent this.
 
 ## Need to review 
 
