@@ -15,21 +15,27 @@ Protection of clean file pages (page cache) may be used to prevent thrashing, re
 
 — https://bugs.launchpad.net/ubuntu/+source/linux/+bug/159356/comments/89
 
-Original le9 patches protected active file pages. Current versions (le9ca) protect clean file pages (`Active(file)` + `Inactive(file)` - `Dirty`). 
+Original le9 patches protected active file pages. Current versions (le9cb) protect clean file pages (`Active(file)` + `Inactive(file)` - `Dirty`).
 
-## le9ca patches
+## le9cb patches
 
-`le9ca*-5.10` patches may be correctly applied to Linux 5.10—5.12-rc4.
+`le9cb*-5.10` patches may be correctly applied to Linux 5.10—5.12-rc4.
+
+`le9cb*-5.4` patches may be correctly applied to Linux 5.4.
+
+`le9cb*-4.19` patches may be correctly applied to Linux 4.19.
 
 The `vm.clean_file_low_kbytes` sysctl knob provides *best-effort* protection of clean file pages. The clean file pages on the current node won't be reclaimed uder memory pressure when their volume is below `vm.clean_file_low_kbytes` *unless* we threaten to OOM or have no swap space or vm.swappiness=0.
 
 The `vm.clean_file_min_kbytes` sysctl knob provides *hard* protection of clean file pages. The clean file pages on the current node won't be reclaimed under memory pressure when their volume is below `vm.clean_file_min_kbytes`.
 
-`le9ca0` just provides two sysctl knobs with 0 values and does not protect clean file pages by default.
+The `le9cb0`, `le9cb1`, `le9cb2` patches differ only in the default values.
 
-`le9ca1` provides only soft protection (`vm.clean_file_low_kbytes=150000`, `vm.clean_file_min_kbytes=0`). This patch may be safly used by default.
+`le9cb0` just provides two sysctl knobs with 0 values and does not protect clean file pages by default.
 
-`le9ca2` provides hard protection of clean file pages (`vm.clean_file_low_kbytes=250000`, `vm.clean_file_min_kbytes=200000`).
+`le9cb1` provides only soft protection (`vm.clean_file_low_kbytes=150000`, `vm.clean_file_min_kbytes=0`). This patch may be safly used by default.
+
+`le9cb2` provides hard protection of clean file pages (`vm.clean_file_low_kbytes=250000`, `vm.clean_file_min_kbytes=200000`).
 
 ## Effects
 
@@ -56,7 +62,7 @@ These tools may be used to monitor memory and PSI metrics during stress tests:
 - `MemAvailable` may be calculated incorrectly (protected `vm.clean_file_min_kbytes` value cannot be reclaimed);
 - Hard protection of file pages may invoke `Fatal IO error 11` [#5](https://github.com/hakavlad/le9-patch/issues/5) and even `kernel: Oops` [#6](https://github.com/hakavlad/le9-patch/issues/6) with DRM/i915 driver. [Disabling](https://github.com/hakavlad/disable-i915-gem-shrinker) DRM/i915 GEM shrinker can prevent this.
 
-## Need to review 
+## Need to review
 
 These patches need to be reviewed by linux-mm peoples.
 
