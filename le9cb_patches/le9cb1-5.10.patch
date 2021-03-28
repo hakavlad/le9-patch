@@ -1,0 +1,285 @@
+From e68ef5b4bdfecf4cdc262ff800510d551537e300 Mon Sep 17 00:00:00 2001
+From: Alexey Avramov <hakavlad@gmail.com>
+Date: Sun, 28 Mar 2021 21:07:28 +0900
+Subject: [PATCH] mm: Protect clean file pages under memory pressure
+
+The patch provides sysctl knobs for protecting clean file pages
+during low-memory conditions.
+
+Protection of clean file pages may be used to prevent thrashing and
+reducing I/O under memory pressure. Hard protection of clean file
+pages may be used to avoid high latency and prevent livelock in
+near-OOM conditions.
+
+The vm.clean_file_low_kbytes sysctl knob provides *best-effort*
+protection of clean file pages. The clean file pages on the current
+node won't be reclaimed uder memory pressure when their volume is
+below vm.clean_file_low_kbytes *unless* we threaten to OOM or have
+no swap space or vm.swappiness=0.
+The default value is 150000.
+
+The vm.clean_file_min_kbytes sysctl knob provides *hard* protection
+of clean file pages. The clean file pages on the current node won't
+be reclaimed under memory pressure when their volume is below
+vm.file_min_kbytes.
+The default value is 0.
+
+Signed-off-by: Alexey Avramov <hakavlad@gmail.com>
+---
+ Documentation/admin-guide/sysctl/vm.rst | 31 ++++++++++++++++++++
+ include/linux/mm.h                      |  5 ++++
+ kernel/sysctl.c                         | 29 +++++++++++++++++++
+ mm/Kconfig                              | 34 ++++++++++++++++++++++
+ mm/vmscan.c                             | 51 +++++++++++++++++++++++++++++++++
+ 5 files changed, 150 insertions(+)
+
+diff --git a/Documentation/admin-guide/sysctl/vm.rst b/Documentation/admin-guide/sysctl/vm.rst
+index f455fa00c..a0d2041b7 100644
+--- a/Documentation/admin-guide/sysctl/vm.rst
++++ b/Documentation/admin-guide/sysctl/vm.rst
+@@ -26,6 +26,8 @@ Currently, these files are in /proc/sys/vm:
+
+ - admin_reserve_kbytes
+ - block_dump
++- clean_file_low_kbytes
++- clean_file_min_kbytes
+ - compact_memory
+ - compaction_proactiveness
+ - compact_unevictable_allowed
+@@ -113,6 +115,35 @@ block_dump enables block I/O debugging when set to a nonzero value. More
+ information on block I/O debugging is in Documentation/admin-guide/laptops/laptop-mode.rst.
+
+
++clean_file_low_kbytes
++=====================
++
++Available only when CONFIG_PROTECT_CLEAN_FILE is set. This knob provides
++*best-effort* protection of clean file pages. The clean file pages on the
++current node won't be reclaimed uder memory pressure when their volume is
++below vm.clean_file_low_kbytes *unless* we threaten to OOM or have no swap
++space or vm.swappiness=0.
++
++Protection of clean file pages may be used to prevent thrashing and
++reducing I/O under low-memory conditions.
++
++The default value is 150000.
++
++
++clean_file_min_kbytes
++=====================
++
++Available only when CONFIG_PROTECT_CLEAN_FILE is set. This knob provides
++*hard* protection of clean file pages. The clean file pages on the current
++node won't be reclaimed under memory pressure when their volume is below
++vm.clean_file_min_kbytes.
++
++Hard protection of clean file pages may be used to avoid high latency and
++prevent livelock in near-OOM conditions.
++
++The default value is 0.
++
++
+ compact_memory
+ ==============
+
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index db6ae4d3f..8372bf33c 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -205,6 +205,11 @@ extern int sysctl_max_map_count;
+ extern unsigned long sysctl_user_reserve_kbytes;
+ extern unsigned long sysctl_admin_reserve_kbytes;
+
++#if defined(CONFIG_PROTECT_CLEAN_FILE)
++extern unsigned long sysctl_clean_file_low_kbytes;
++extern unsigned long sysctl_clean_file_min_kbytes;
++#endif
++
+ extern int sysctl_overcommit_memory;
+ extern int sysctl_overcommit_ratio;
+ extern unsigned long sysctl_overcommit_kbytes;
+diff --git a/kernel/sysctl.c b/kernel/sysctl.c
+index afad08596..a75acb2cd 100644
+--- a/kernel/sysctl.c
++++ b/kernel/sysctl.c
+@@ -111,6 +111,19 @@
+ static int sixty = 60;
+ #endif
+
++#if defined(CONFIG_PROTECT_CLEAN_FILE)
++#if CONFIG_PROTECT_CLEAN_FILE_LOW_KBYTES < 0
++#error "CONFIG_PROTECT_CLEAN_FILE_LOW_KBYTES should be >= 0"
++#endif
++#if CONFIG_PROTECT_CLEAN_FILE_MIN_KBYTES < 0
++#error "CONFIG_PROTECT_CLEAN_FILE_MIN_KBYTES should be >= 0"
++#endif
++unsigned long sysctl_clean_file_low_kbytes __read_mostly =
++	CONFIG_PROTECT_CLEAN_FILE_LOW_KBYTES;
++unsigned long sysctl_clean_file_min_kbytes __read_mostly =
++	CONFIG_PROTECT_CLEAN_FILE_MIN_KBYTES;
++#endif
++
+ static int __maybe_unused neg_one = -1;
+ static int __maybe_unused two = 2;
+ static int __maybe_unused four = 4;
+@@ -3082,6 +3095,22 @@ static struct ctl_table vm_table[] = {
+ 		.extra2		= SYSCTL_ONE,
+ 	},
+ #endif
++#if defined(CONFIG_PROTECT_CLEAN_FILE)
++	{
++		.procname	= "clean_file_low_kbytes",
++		.data		= &sysctl_clean_file_low_kbytes,
++		.maxlen		= sizeof(sysctl_clean_file_low_kbytes),
++		.mode		= 0644,
++		.proc_handler	= proc_doulongvec_minmax,
++	},
++	{
++		.procname	= "clean_file_min_kbytes",
++		.data		= &sysctl_clean_file_min_kbytes,
++		.maxlen		= sizeof(sysctl_clean_file_min_kbytes),
++		.mode		= 0644,
++		.proc_handler	= proc_doulongvec_minmax,
++	},
++#endif
+ 	{
+ 		.procname	= "user_reserve_kbytes",
+ 		.data		= &sysctl_user_reserve_kbytes,
+diff --git a/mm/Kconfig b/mm/Kconfig
+index 390165ffb..b09222fad 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -63,6 +63,40 @@ config SPARSEMEM_MANUAL
+
+ endchoice
+
++config PROTECT_CLEAN_FILE
++	bool "Add sysctl knobs for protecting clean file pages under low memory"
++	depends on SYSCTL
++	default y
++	help
++	  Protection of clean file pages may be used to prevent thrashing
++	  and reduce I/O under memory pressure. Hard protection of clean file
++	  pages may be used to avoid high latency and prevent livelock in
++	  near-OOM conditions.
++
++	  This option provides two sysctl knobs for protecting clean file pages
++	  under memory pressure.
++
++config PROTECT_CLEAN_FILE_LOW_KBYTES
++	int "Default value for vm.clean_file_low_kbytes"
++	depends on PROTECT_CLEAN_FILE
++	default "150000"
++	help
++	  The vm.clean_file_low_kbytes sysctl knob provides *best-effort*
++	  protection of clean file pages. The clean file pages on the current
++	  node won't be reclaimed uder memory pressure when their volume is
++	  below vm.clean_file_low_kbytes *unless* we threaten to OOM or have
++	  no swap space or vm.swappiness=0.
++
++config PROTECT_CLEAN_FILE_MIN_KBYTES
++	int "Default value for vm.clean_file_min_kbytes"
++	depends on PROTECT_CLEAN_FILE
++	default "0"
++	help
++	  The vm.clean_file_min_kbytes sysctl knob provides *hard* protection
++	  of clean file pages. The clean file pages on the current node won't be
++	  reclaimed under memory pressure when their volume is below
++	  vm.clean_file_min_kbytes.
++
+ config DISCONTIGMEM
+ 	def_bool y
+ 	depends on (!SELECT_MEMORY_MODEL && ARCH_DISCONTIGMEM_ENABLE) || DISCONTIGMEM_MANUAL
+diff --git a/mm/vmscan.c b/mm/vmscan.c
+index 7b4e31eac..e409874e9 100644
+--- a/mm/vmscan.c
++++ b/mm/vmscan.c
+@@ -120,6 +120,21 @@ struct scan_control {
+ 	/* The file pages on the current node are dangerously low */
+ 	unsigned int file_is_tiny:1;
+
++#if defined(CONFIG_PROTECT_CLEAN_FILE)
++	/*
++	 * The clean file pages on the current node won't be reclaimed when
++	 * their volume is below vm.clean_file_low_kbytes *unless* we threaten
++	 * to OOM or have no swap space or vm.swappiness=0.
++	 */
++	unsigned int clean_file_below_low:1;
++
++	/*
++	 * The clean file pages on the current node won't be reclaimed when
++	 * their volume is below vm.clean_file_min_kbytes.
++	 */
++	unsigned int clean_file_below_min:1;
++#endif
++
+ 	/* Allocation order */
+ 	s8 order;
+
+@@ -2282,6 +2297,18 @@ static void get_scan_count(struct lruvec *lruvec, struct scan_control *sc,
+ 		goto out;
+ 	}
+
++#if defined(CONFIG_PROTECT_CLEAN_FILE)
++	/*
++	 * Force-scan anon if clean file pages is under vm.clean_file_min_kbytes
++	 * or vm.clean_file_low_kbytes (unless the swappiness setting
++	 * disagrees with swapping).
++	 */
++	if ((sc->clean_file_below_low || sc->clean_file_below_min) && swappiness) {
++		scan_balance = SCAN_ANON;
++		goto out;
++	}
++#endif
++
+ 	/*
+ 	 * If there is enough inactive page cache, we do not reclaim
+ 	 * anything from the anonymous working right now.
+@@ -2418,6 +2445,15 @@ static void get_scan_count(struct lruvec *lruvec, struct scan_control *sc,
+ 			BUG();
+ 		}
+
++#if defined(CONFIG_PROTECT_CLEAN_FILE)
++		/*
++		 * Don't reclaim clean file pages when their volume is below
++		 * vm.clean_file_min_kbytes.
++		 */
++		if (file && sc->clean_file_below_min)
++			scan = 0;
++#endif
++
+ 		nr[lru] = scan;
+ 	}
+ }
+@@ -2671,6 +2707,9 @@ static void shrink_node(pg_data_t *pgdat, struct scan_control *sc)
+ 	struct lruvec *target_lruvec;
+ 	bool reclaimable = false;
+ 	unsigned long file;
++#if defined(CONFIG_PROTECT_CLEAN_FILE)
++	unsigned long node_file, node_dirty, node_clean;
++#endif
+
+ 	target_lruvec = mem_cgroup_lruvec(sc->target_mem_cgroup, pgdat);
+
+@@ -2768,6 +2807,18 @@ static void shrink_node(pg_data_t *pgdat, struct scan_control *sc)
+ 			anon >> sc->priority;
+ 	}
+
++#if defined(CONFIG_PROTECT_CLEAN_FILE)
++	node_dirty = node_page_state(pgdat, NR_FILE_DIRTY);
++	node_file = node_page_state(pgdat, NR_ACTIVE_FILE) +
++		node_page_state(pgdat, NR_INACTIVE_FILE);
++
++	if (node_file > node_dirty)
++		node_clean = (node_file - node_dirty) << (PAGE_SHIFT - 10);
++
++	sc->clean_file_below_low = node_clean <= sysctl_clean_file_low_kbytes;
++	sc->clean_file_below_min = node_clean <= sysctl_clean_file_min_kbytes;
++#endif
++
+ 	shrink_node_memcgs(pgdat, sc);
+
+ 	if (reclaim_state) {
+--
+2.11.0
+
