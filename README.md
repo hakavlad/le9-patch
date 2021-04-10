@@ -47,7 +47,7 @@ The `le9cb0`, `le9cb1`, `le9cb2` patches differ only in the default values.
 ## Testing
 
 These tools may be used to monitor memory and PSI metrics during stress tests:
-- [mem2log](https://github.com/hakavlad/le9-patch/tree/main/mem2log) may be used to log memory metrics from `/proc/meminfo`;
+- [mem2log](https://github.com/hakavlad/mem2log) may be used to log memory metrics from `/proc/meminfo`;
 - [psi2log](https://github.com/hakavlad/nohang/blob/master/docs/psi2log.manpage.md) from [nohang](https://github.com/hakavlad/nohang) package may be used to log [PSI](https://facebookmicrosites.github.io/psi/docs/overview) metrics during stress tests.
 
 ## Demo
