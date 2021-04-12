@@ -15,34 +15,30 @@ Protection of clean file pages (page cache) may be used to prevent thrashing, re
 
 — https://bugs.launchpad.net/ubuntu/+source/linux/+bug/159356/comments/89
 
-Original le9 patches protected active file pages. Current versions (le9cb) protect clean file pages (`Active(file)` + `Inactive(file)` - `Dirty`).
+Original le9 patches protected active file pages. Current versions (le9db) protect clean file pages (`Active(file)` + `Inactive(file)` + `Isolated(file)` - `Dirty`).
 
-## le9cb patches
+## le9db patches
 
-`le9cb*-5.10` patches may be correctly applied to Linux 5.10—5.12-rc4.
+`le9db*-5.10` patches may be correctly applied to Linux 5.10—5.12-rc7.
 
-`le9cb*-5.4` patches may be correctly applied to Linux 5.4.
+The `vm.clean_low_kbytes` sysctl knob provides *best-effort* protection of clean file pages. The clean file pages on the current node won't be reclaimed under memory pressure when their amount is below `vm.clean_low_kbytes` *unless* we threaten to OOM or have no free swap space or vm.swappiness=0.
 
-`le9cb*-4.19` patches may be correctly applied to Linux 4.19.
+The `vm.clean_min_kbytes` sysctl knob provides *hard* protection of clean file pages. The clean file pages on the current node won't be reclaimed under memory pressure when their amount is below `vm.clean_min_kbytes`.
 
-The `vm.clean_file_low_kbytes` sysctl knob provides *best-effort* protection of clean file pages. The clean file pages on the current node won't be reclaimed uder memory pressure when their volume is below `vm.clean_file_low_kbytes` *unless* we threaten to OOM or have no swap space or vm.swappiness=0.
+The `le9db0`, `le9db1`, `le9db2` patches differ only in the default values.
 
-The `vm.clean_file_min_kbytes` sysctl knob provides *hard* protection of clean file pages. The clean file pages on the current node won't be reclaimed under memory pressure when their volume is below `vm.clean_file_min_kbytes`.
+`le9db0` just provides two sysctl knobs with 0 values and does not protect clean file pages by default.
 
-The `le9cb0`, `le9cb1`, `le9cb2` patches differ only in the default values.
+`le9db1` provides only soft protection by default (`vm.clean_low_kbytes=150000`, `vm.clean_min_kbytes=0`). This patch may be safly used by default.
 
-`le9cb0` just provides two sysctl knobs with 0 values and does not protect clean file pages by default.
-
-`le9cb1` provides only soft protection (`vm.clean_file_low_kbytes=150000`, `vm.clean_file_min_kbytes=0`). This patch may be safly used by default.
-
-`le9cb2` provides hard protection of clean file pages (`vm.clean_file_low_kbytes=250000`, `vm.clean_file_min_kbytes=200000`).
+`le9db2` provides hard protection of clean file pages by default (`vm.clean_low_kbytes=250000`, `vm.clean_min_kbytes=200000`).
 
 ## Effects
 
 - Improving system responsiveness under low-memory conditions;
 - Improving performans in I/O bound tasks under memory pressure;
 - OOM killer comes faster (with hard protection);
-- Fast system reclaiming after OOM.
+- Fast system reclaiming after OOM (with hard protection).
 
 ## Testing
 
@@ -68,7 +64,7 @@ These patches need to be reviewed by linux-mm peoples.
 
 ## How to get it
 
-- The kernel build with the patch is available for Fedora 33: https://copr.fedorainfracloud.org/coprs/atim/kernel-futex/;
+- The kernel build with the patch is available for Fedora 33 and 34: https://copr.fedorainfracloud.org/coprs/atim/kernel-futex/;
 - [pf-kernel](https://gitlab.com/post-factum/pf-kernel/-/wikis/README) provides the file pages protection (with own le9 implementation) by default since [v5.10-pf2](https://gitlab.com/post-factum/pf-kernel/-/tags/v5.10-pf2).
 
 ## Resources
