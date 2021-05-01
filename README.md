@@ -29,7 +29,7 @@ The `vm.clean_low_kbytes` sysctl knob provides *best-effort* protection of CFP. 
 
 The `vm.clean_min_kbytes` sysctl knob provides *hard* protection of CFP. The CFP on the current node won't be reclaimed under memory pressure when their amount is below `vm.clean_min_kbytes`. Setting it to a high value may result in a early out-of-memory condition due to the inability to reclaim the protected amount of CFP when other types of pages cannot be reclaimed. The default value is defined by `CONFIG_CLEAN_MIN_KBYTES`.
 
-`le9db*-5.10` patches may be correctly applied to Linux 5.10—5.12-rc7.
+`le9db*-5.10` patches may be correctly applied to Linux 5.10—5.12.
 
 The `le9db0`, `le9db1`, `le9db2` patches differ only in the default values.
 
@@ -61,7 +61,7 @@ These tools may be used to monitor memory and PSI metrics during stress tests:
 ## Warnings
 
 - These patches were written by an amateur. Use at your own risk;
-- `MemAvailable` may be calculated incorrectly (protected `vm.clean_file_min_kbytes` value cannot be reclaimed);
+- `MemAvailable` may be calculated incorrectly (protected `vm.clean_min_kbytes` value cannot be reclaimed);
 - Hard protection of file pages may invoke `Fatal IO error 11` [#5](https://github.com/hakavlad/le9-patch/issues/5) and even `kernel: Oops` [#6](https://github.com/hakavlad/le9-patch/issues/6) with DRM/i915 driver. [Disabling](https://github.com/hakavlad/disable-i915-gem-shrinker) DRM/i915 GEM shrinker can prevent this.
 
 ## Need to review
@@ -70,7 +70,6 @@ These patches need to be reviewed by linux-mm peoples.
 
 ## How to get it
 
-- The kernel build with the patch is available for Fedora 33 and 34: https://copr.fedorainfracloud.org/coprs/atim/kernel-futex/;
 - [pf-kernel](https://gitlab.com/post-factum/pf-kernel/-/wikis/README) provides the file pages protection (with own le9 implementation) by default since [v5.10-pf2](https://gitlab.com/post-factum/pf-kernel/-/tags/v5.10-pf2).
 
 ## Resources
