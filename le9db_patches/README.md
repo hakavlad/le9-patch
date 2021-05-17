@@ -11,7 +11,7 @@ The `vm.clean_low_kbytes` sysctl knob provides *best-effort* protection of CFP. 
 
 The `vm.clean_min_kbytes` sysctl knob provides *hard* protection of CFP. The CFP on the current node won't be reclaimed under memory pressure when their amount is below `vm.clean_min_kbytes`. Setting it to a high value may result in a early out-of-memory condition due to the inability to reclaim the protected amount of CFP when other types of pages cannot be reclaimed. The default value is defined by `CONFIG_CLEAN_MIN_KBYTES`.
 
-`le9db*-5.10` patches may be correctly applied to Linux 5.10—5.12.
+`le9db*-5.10` patches may be correctly applied to vanilla Linux 5.10—5.13-rc2.
 
 The `le9db0`, `le9db1`, `le9db2` patches differ only in the default values.
 
