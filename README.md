@@ -11,7 +11,7 @@ Protection of clean file pages (page cache) may be used to prevent thrashing, re
 
 — https://lore.kernel.org/patchwork/patch/222042/
 
-> The attached kernel patch (applied on top of 4.18.5) that I've tried, almost completely eliminates the disk thrashing(the constant reading of executable(and .so) files on every context switch) associated with freezing the OS and so, with this patch, the OOM-killer is triggered within a maxium of 1 second when it is needed, rather than, without this patch, freeze the OS for minutes(or just a long time, it may even auto reboot depending on your kernel .config options set to panic(reboot) on hang after xx seconds) with constant disk reading well before OOM-killer gets triggered.
+> The attached kernel patch (applied on top of 4.18.5) that I've tried, almost completely eliminates the disk thrashing (the constant reading of executable (and .so) files on every context switch) associated with freezing the OS and so, with this patch, the OOM-killer is triggered within a maximum of 1 second when it is needed, rather than, without this patch, freeze the OS for minutes (or just a long time, it may even auto reboot depending on your kernel .config options set to panic (reboot) on hang after xx seconds) with constant disk reading well before OOM-killer gets triggered.
 
 — https://bugs.launchpad.net/ubuntu/+source/linux/+bug/159356/comments/89
 
@@ -25,7 +25,7 @@ The kernel does not have a mechanism for selectively protecting clean file pages
 
 Protection of CFP may be used to prevent thrashing and reducing I/O under memory pressure. Hard protection of CFP may be used to avoid high latency and prevent livelock in near-OOM conditions. The patch provides sysctl knobs for protecting the specified amount of clean file cache under memory pressure.
 
-The `vm.clean_low_kbytes` sysctl knob provides *best-effort* protection of CFP. The CFP on the current node won't be reclaimed uder memory pressure when their amount is below `vm.clean_low_kbytes` *unless* we threaten to OOM or have no free swap space or vm.swappiness=0. Setting it to a high value may result in a early eviction of anonymous pages into the swap space by attempting to hold the protected amount of clean file pages in memory. The default value is defined by `CONFIG_CLEAN_LOW_KBYTES`.
+The `vm.clean_low_kbytes` sysctl knob provides *best-effort* protection of CFP. The CFP on the current node won't be reclaimed under memory pressure when their amount is below `vm.clean_low_kbytes` *unless* we threaten to OOM or have no free swap space or vm.swappiness=0. Setting it to a high value may result in a early eviction of anonymous pages into the swap space by attempting to hold the protected amount of clean file pages in memory. The default value is defined by `CONFIG_CLEAN_LOW_KBYTES`.
 
 The `vm.clean_min_kbytes` sysctl knob provides *hard* protection of CFP. The CFP on the current node won't be reclaimed under memory pressure when their amount is below `vm.clean_min_kbytes`. Setting it to a high value may result in a early out-of-memory condition due to the inability to reclaim the protected amount of CFP when other types of pages cannot be reclaimed. The default value is defined by `CONFIG_CLEAN_MIN_KBYTES`.
 
@@ -38,7 +38,7 @@ The `vm.clean_min_kbytes` sysctl knob provides *hard* protection of CFP. The CFP
 ## Effects
 
 - Improving system responsiveness under low-memory conditions;
-- Improving performans in I/O bound tasks under memory pressure;
+- Improving performance in I/O bound tasks under memory pressure;
 - OOM killer comes faster (with hard protection);
 - Fast system reclaiming after OOM (with hard protection).
 
