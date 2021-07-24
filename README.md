@@ -29,11 +29,11 @@ The `vm.clean_low_kbytes` sysctl knob provides *best-effort* protection of CFP. 
 
 The `vm.clean_min_kbytes` sysctl knob provides *hard* protection of CFP. The CFP on the current node won't be reclaimed under memory pressure when their amount is below `vm.clean_min_kbytes`. Setting it to a high value may result in a early out-of-memory condition due to the inability to reclaim the protected amount of CFP when other types of pages cannot be reclaimed. The default value is defined by `CONFIG_CLEAN_MIN_KBYTES`.
 
-`le9db-4.19.patch` may be correctly applied to vanilla Linux 4.19.
-
-`le9db-5.10.patch` may be correctly applied to vanilla Linux 5.10—5.13.
-
-`le9db-5.14-rc1.patch` may be correctly applied to vanilla Linux 5.14-rc1.
+- `le9db-4.14.patch` may be correctly applied to vanilla Linux 4.14;
+- `le9db-4.19.patch` may be correctly applied to vanilla Linux 4.19;
+- `le9db-5.4.patch` may be correctly applied to vanilla Linux 5.4;
+- `le9db-5.10.patch` may be correctly applied to vanilla Linux 5.10—5.13;
+- `le9db-5.14-rc1.patch` may be correctly applied to vanilla Linux 5.14-rc1.
 
 `le9db` patches provide two sysctl knobs with 0 values and does not protect clean file pages by default (`CONFIG_CLEAN_LOW_KBYTES=0`, `CONFIG_CLEAN_MIN_KBYTES=0`).
 
@@ -70,7 +70,7 @@ These patches need to be reviewed by linux-mm peoples.
 
 - [pf-kernel](https://gitlab.com/post-factum/pf-kernel/-/wikis/README) provides the file pages protection (with own le9 implementation) by default since [v5.10-pf2](https://gitlab.com/post-factum/pf-kernel/-/tags/v5.10-pf2);
 - [linux-xanmod](https://xanmod.org/) provides the file pages protection (with le9db patch) by default since [5.12.3-xanmod1](https://github.com/xanmod/linux/releases/tag/5.12.3-xanmod1) ([commit](https://github.com/xanmod/linux/commit/97ffb31447b75448602985423b86f733a9c2957b)) and [5.10.36-xanmod1](https://github.com/xanmod/linux/releases/tag/5.10.36-xanmod1) ([commit](https://github.com/xanmod/linux/commit/b7017d8260928025f7b603e382b5d47c10fa0a3b)).
-- (zen-kernel)[https://github.com/zen-kernel/zen-kernel] provides le9 since (v5.12.18)[https://github.com/zen-kernel/zen-kernel/releases/tag/v5.12.18-lqx1] ((commit)[https://github.com/zen-kernel/zen-kernel/commit/dbbf02a75be3593647fc6ed866b99540e3b8ea9b]). Cache protection may not work by default due to mg-LRU enabled.
+- [zen-kernel](https://github.com/zen-kernel/zen-kernel) provides le9 since [v5.12.18](https://github.com/zen-kernel/zen-kernel/releases/tag/v5.12.18-lqx1) ([commit](https://github.com/zen-kernel/zen-kernel/commit/dbbf02a75be3593647fc6ed866b99540e3b8ea9b)). Cache protection may not work by default due to mg-LRU enabled.
 
 ## Resources
 
