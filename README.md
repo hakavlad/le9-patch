@@ -50,6 +50,8 @@ These tools may be used to monitor memory and PSI metrics during stress tests:
 - [mem2log](https://github.com/hakavlad/mem2log) may be used to log memory metrics from `/proc/meminfo`;
 - [psi2log](https://github.com/hakavlad/nohang/blob/master/docs/psi2log.manpage.md) from [nohang](https://github.com/hakavlad/nohang) package may be used to log [PSI](https://facebookmicrosites.github.io/psi/docs/overview) metrics during stress tests.
 
+Please report your results [here](https://github.com/hakavlad/le9-patch/issues/4).
+
 ## Demo
 
 - https://youtu.be/c5bAOJkX_uc - Linux 5.9 + `le9i-5.9.patch`, playing supertuxkart with 7 threads `while true; do tail /dev/zero; done` in background. `vm.unevictable_activefile_kbytes=1000000`, `vm.unevictable_inactivefile_kbytes=0`.
@@ -66,6 +68,14 @@ These tools may be used to monitor memory and PSI metrics during stress tests:
 
 These patches need to be reviewed by linux-mm peoples.
 
+## What about non-x86?
+
+No data. Testing is encouraged. Please report your results [here](https://github.com/hakavlad/le9-patch/issues/4).
+
+## le9 and Multigenerational LRU Framework
+
+Enabling [multi-generational LRU](https://lwn.net/Articles/856931/) disables le9 effects. `vm.clean_low_kbytes` and `vm.clean_min_kbytes` has no effect with mg-LRU enabled. le9 [modifies](https://github.com/hakavlad/le9-patch/blob/main/le9db_patches/le9db-5.10.patch#L229) `get_scan_count()` to protect clean cache. mg-LRU doesn't use `get_scan_count()`. [mg-lru-helper](https://github.com/hakavlad/mg-lru-helper) can be used to easily manage mg-LRU (enable, disable, get status).
+
 ## How to get it
 
 - [pf-kernel](https://gitlab.com/post-factum/pf-kernel/-/wikis/README) provides the file pages protection (with own le9 implementation) by default since [v5.10-pf2](https://gitlab.com/post-factum/pf-kernel/-/tags/v5.10-pf2);
@@ -75,6 +85,7 @@ These patches need to be reviewed by linux-mm peoples.
 ## Resources
 
 - RFC: vmscan: add min_filelist_kbytes sysctl for protecting the working set (2010)
+    - https://lore.kernel.org/linux-mm/20101028191523.GA14972@google.com/
     - https://lore.kernel.org/patchwork/patch/222042/
     - https://lkml.org/lkml/2010/10/28/289/
 - CHROMIUM: vmscan: add min_filelist_kbytes sysctl for protecting the working set (2020) https://chromium.googlesource.com/chromiumos/third_party/kernel-next/+/545e2917dbd863760a51379de8c26631e667c563%5E%21/
@@ -114,6 +125,9 @@ These patches need to be reviewed by linux-mm peoples.
 - This patch looks like it could be merged with mainline. Why don't you try sending it to linux-mm? https://www.phoronix.com/forums/forum/phoronix/general-discussion/1118164-yes-linux-does-bad-in-low-ram-memory-pressure-situations-on-the-desktop/page17#post1120024
 - Ubuntu freeze when low memory https://askubuntu.com/questions/1017884/ubuntu-freeze-when-low-memory
 - How to avoid high latency near OOM situation? https://unix.stackexchange.com/questions/423261/how-to-avoid-high-latency-near-oom-situation
+- System hanging when it runs out of memory https://unix.stackexchange.com/questions/28175/system-hanging-when-it-runs-out-of-memory
+- Can you set a minimum linux disk buffer size? https://serverfault.com/questions/171164/can-you-set-a-minimum-linux-disk-buffer-size
+- Защищаем чистый кэш файлов при нехватке памяти для предотвращения пробуксовки и livelock https://www.linux.org.ru/forum/talks/16255397
 - Убунтята, не проходите мимо: le9 patch добавлен в linux-xanmod https://www.linux.org.ru/forum/general/16334308
 - "le9" Strives To Make Linux Very Usable On Systems With Small Amounts Of RAM https://www.phoronix.com/scan.php?page=news_item&px=le9-Linux-Low-RAM
 - ‘le9’, un parche para mitigar la escasez de RAM en Linux https://www.muylinux.com/2021/07/14/le9-poca-ram-linux/
