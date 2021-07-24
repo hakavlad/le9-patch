@@ -29,6 +29,8 @@ The `vm.clean_low_kbytes` sysctl knob provides *best-effort* protection of CFP. 
 
 The `vm.clean_min_kbytes` sysctl knob provides *hard* protection of CFP. The CFP on the current node won't be reclaimed under memory pressure when their amount is below `vm.clean_min_kbytes`. Setting it to a high value may result in a early out-of-memory condition due to the inability to reclaim the protected amount of CFP when other types of pages cannot be reclaimed. The default value is defined by `CONFIG_CLEAN_MIN_KBYTES`.
 
+`le9db-4.19.patch` may be correctly applied to vanilla Linux 4.19.
+
 `le9db-5.10.patch` may be correctly applied to vanilla Linux 5.10—5.13.
 
 `le9db-5.14-rc1.patch` may be correctly applied to vanilla Linux 5.14-rc1.
@@ -68,6 +70,7 @@ These patches need to be reviewed by linux-mm peoples.
 
 - [pf-kernel](https://gitlab.com/post-factum/pf-kernel/-/wikis/README) provides the file pages protection (with own le9 implementation) by default since [v5.10-pf2](https://gitlab.com/post-factum/pf-kernel/-/tags/v5.10-pf2);
 - [linux-xanmod](https://xanmod.org/) provides the file pages protection (with le9db patch) by default since [5.12.3-xanmod1](https://github.com/xanmod/linux/releases/tag/5.12.3-xanmod1) ([commit](https://github.com/xanmod/linux/commit/97ffb31447b75448602985423b86f733a9c2957b)) and [5.10.36-xanmod1](https://github.com/xanmod/linux/releases/tag/5.10.36-xanmod1) ([commit](https://github.com/xanmod/linux/commit/b7017d8260928025f7b603e382b5d47c10fa0a3b)).
+- (zen-kernel)[https://github.com/zen-kernel/zen-kernel] provides le9 since (v5.12.18)[https://github.com/zen-kernel/zen-kernel/releases/tag/v5.12.18-lqx1] ((commit)[https://github.com/zen-kernel/zen-kernel/commit/dbbf02a75be3593647fc6ed866b99540e3b8ea9b]). Cache protection may not work by default due to mg-LRU enabled.
 
 ## Resources
 
@@ -111,4 +114,12 @@ These patches need to be reviewed by linux-mm peoples.
 - This patch looks like it could be merged with mainline. Why don't you try sending it to linux-mm? https://www.phoronix.com/forums/forum/phoronix/general-discussion/1118164-yes-linux-does-bad-in-low-ram-memory-pressure-situations-on-the-desktop/page17#post1120024
 - Ubuntu freeze when low memory https://askubuntu.com/questions/1017884/ubuntu-freeze-when-low-memory
 - How to avoid high latency near OOM situation? https://unix.stackexchange.com/questions/423261/how-to-avoid-high-latency-near-oom-situation
+- Убунтята, не проходите мимо: le9 patch добавлен в linux-xanmod https://www.linux.org.ru/forum/general/16334308
+- "le9" Strives To Make Linux Very Usable On Systems With Small Amounts Of RAM https://www.phoronix.com/scan.php?page=news_item&px=le9-Linux-Low-RAM
+- ‘le9’, un parche para mitigar la escasez de RAM en Linux https://www.muylinux.com/2021/07/14/le9-poca-ram-linux/
+- Linux Will Run Even Better On Ancient Hardware, Thanks To The Upcoming Le9 Patch https://fossbytes.com/le9-linux-patch-would-make-linux-better-on-ancient-hardware/
+- Linux for PC from 2007: 37 browser tabs+Discord+Skype with no lag on only 2 GB RAM! https://notes.valdikss.org.ru/linux-for-old-pc-from-2007/en/
+- le9 thread on xanmod forum https://forum.xanmod.org/thread-4102-post-7562.html
+- Нехватка памяти, фризы: OOM KILLER, le9-patch и пр. (puppyrus forum) https://forum.puppyrus.org/index.php?topic=23160.msg178228#msg178228
+- le9 which in ROSA Linux https://abf.io/import/kernel-5.10/blob/rosa2021.1/le9pf.diff
 
