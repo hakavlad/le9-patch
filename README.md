@@ -96,11 +96,11 @@ Enabling [multi-generational LRU](https://lwn.net/Articles/856931/) disables le9
     - https://www.phoronix.com/forums/forum/phoronix/general-discussion/1118164-yes-linux-does-bad-in-low-ram-memory-pressure-situations-on-the-desktop
     - https://news.ycombinator.com/item?id=20620545
     - https://www.reddit.com/r/linux/comments/cmg48b/lets_talk_about_the_elephant_in_the_room_the/
-- How to keep executable code in memory even under memory pressure ? in Linux https://stackoverflow.com/questions/52067753/how-to-keep-executable-code-in-memory-even-under-memory-pressure-in-linux
 - Howto prevent kernel from evicting code pages ever? (to avoid disk thrashing when about to run out of RAM)
+    - https://lore.kernel.org/lkml/CAKYFi-4a=H+vT+vo5s6mpKXAv+0W0pyTj1WtEr6xfjoFVFmtJQ@mail.gmail.com/
     - https://stackoverflow.com/questions/51927528/how-to-prevent-linux-kernel-from-evicting-file-backed-executable-pages-when-abou
-    - https://lkml.org/lkml/2018/8/22/176
-    - https://lkml.org/lkml/2018/9/10/296
+- How to keep executable code in memory even under memory pressure ? in Linux
+    - https://stackoverflow.com/questions/52067753/how-to-keep-executable-code-in-memory-even-under-memory-pressure-in-linux
 - OOM killer doesn't work properly, leads to a frozen OS https://unix.stackexchange.com/questions/373312/oom-killer-doesnt-work-properly-leads-to-a-frozen-os/458855#458855
 - `le9b.patch` https://launchpadlibrarian.net/386196358/le9b.patch
 - `le9d.patch` https://launchpadlibrarian.net/389887258/le9d.patch, https://lkml.org/lkml/diff/2018/9/10/296/1
@@ -116,7 +116,6 @@ Enabling [multi-generational LRU](https://lwn.net/Articles/856931/) disables le9
 - Merge origin/chromeos-4.19-lowmem https://gitlab.freedesktop.org/seanpaul/dpu-staging/commit/0b992f2dbb044896c3584e10bd5b97cf41e2ec6d
 - https://abf.io/mikhailnov/kernel-desktop-4.15/blob/master/Chromium-OS-low-memory-patchset.patch
 - Discussing protection of file pages with post-factum and mikhailnov - https://www.linux.org.ru/news/kernel/16052362?cid=16055197 and further.
-- LKML: Marcus Linsner: Howto prevent kernel from evicting code pages ever? (to avoid disk thrashing when about to run out of RAM) https://lkml.org/lkml/2018/8/22/176
 - How to prevent Linux kernel from evicting file-backed executable pages when about to run out of RAM? (which would otherwise cause disk-thrashing) https://stackoverflow.com/questions/51927528/how-to-prevent-linux-kernel-from-evicting-file-backed-executable-pages-when-abou
 - mm/concepts https://www.kernel.org/doc/html/latest/admin-guide/mm/concepts.html
 - M. Gorman - Understanding the Linux Virtual Memory Manager https://www.kernel.org/doc/gorman/
@@ -135,5 +134,5 @@ Enabling [multi-generational LRU](https://lwn.net/Articles/856931/) disables le9
 - Linux for PC from 2007: 37 browser tabs+Discord+Skype with no lag on only 2 GB RAM! https://notes.valdikss.org.ru/linux-for-old-pc-from-2007/en/
 - le9 thread on xanmod forum https://forum.xanmod.org/thread-4102-post-7562.html
 - Нехватка памяти, фризы: OOM KILLER, le9-patch и пр. (puppyrus forum) https://forum.puppyrus.org/index.php?topic=23160.msg178228#msg178228
-- le9 which in ROSA Linux https://abf.io/import/kernel-5.10/blob/rosa2021.1/le9pf.diff
+- le9 which is used in ROSA Linux https://abf.io/import/kernel-5.10/blob/rosa2021.1/le9pf.diff
 
