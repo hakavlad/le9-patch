@@ -74,7 +74,7 @@ No data. Testing is encouraged. Please report your results [here](https://github
 
 ## le9 and Multigenerational LRU Framework
 
-Enabling [multi-generational LRU](https://lwn.net/Articles/856931/) disables le9 effects. `vm.clean_low_kbytes` and `vm.clean_min_kbytes` has no effect with mg-LRU enabled. le9 [modifies](https://github.com/hakavlad/le9-patch/blob/main/le9db_patches/le9db-5.10.patch#L229) `get_scan_count()` to protect clean cache. mg-LRU doesn't use `get_scan_count()`. [mg-lru-helper](https://github.com/hakavlad/mg-lru-helper) can be used to easily manage mg-LRU (enable, disable, get status).
+Enabling [multi-generational LRU](https://lwn.net/Articles/856931/) disables le9 effects. `vm.clean_low_kbytes` and `vm.clean_min_kbytes` have no effect when mg-LRU is enabled. le9 [modifies](https://github.com/hakavlad/le9-patch/blob/main/le9db_patches/le9db-5.10.patch#L229) `get_scan_count()` to protect clean cache. mg-LRU doesn't use `get_scan_count()`. [mg-lru-helper](https://github.com/hakavlad/mg-lru-helper) can be used to easily manage mg-LRU (enable, disable, get status).
 
 ## How to get it
 
