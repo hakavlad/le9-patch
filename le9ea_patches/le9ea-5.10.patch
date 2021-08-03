@@ -1,6 +1,6 @@
-From dbdacc7bc2cc8266327541afeea8f341ab409f42 Mon Sep 17 00:00:00 2001
+From e44b9500373a137902fbc56b532811b24f020340 Mon Sep 17 00:00:00 2001
 From: Alexey Avramov <hakavlad@inbox.lv>
-Date: Tue, 3 Aug 2021 23:27:36 +0900
+Date: Tue, 3 Aug 2021 23:40:17 +0900
 Subject: [PATCH] mm/vmscan: add sysctl knobs for protecting the working set
 
 The kernel does not provide a way to protect the working set under memory
@@ -21,7 +21,7 @@ is defined by CONFIG_ANON_MIN_KBYTES (suggested 0 in Kconfig).
 
 The vm.clean_low_kbytes sysctl knob provides *best-effort* protection of
 clean file pages. The clean file pages on the current node won't be
-reclaimed uder memory pressure when their amount is below
+reclaimed under memory pressure when their amount is below
 vm.clean_low_kbytes *unless* we threaten to OOM or have no free swap space
 or vm.swappiness=0. Setting it to a high value may result in a early
 eviction of anonymous pages into the swap space by attempting to hold the
