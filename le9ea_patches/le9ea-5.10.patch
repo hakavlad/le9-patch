@@ -1,20 +1,23 @@
-From 7133a0094394b4f3f98a9c66bdb727da0fd9efa1 Mon Sep 17 00:00:00 2001
+From dbdacc7bc2cc8266327541afeea8f341ab409f42 Mon Sep 17 00:00:00 2001
 From: Alexey Avramov <hakavlad@inbox.lv>
-Date: Tue, 3 Aug 2021 01:42:39 +0900
-Subject: [PATCH] mm/vmscan: add sysctl knobs for protecting working set
+Date: Tue, 3 Aug 2021 23:27:36 +0900
+Subject: [PATCH] mm/vmscan: add sysctl knobs for protecting the working set
 
-The kernel does not have a mechanism for hard protection of the working set
-(primarily anonymous and clean file pages) under memory pressure. A certain
-amount of the anonymous and clean file pages is required by the userspace
-for normal operation. First of all, you need a cache of shared libraries
-and executable binaries. If the volume of the clean file pages falls below
-a certain level, then thrashing and even livelock can take place. The patch
-provides sysctl knobs for protecting working set under memory pressure.
+The kernel does not provide a way to protect the working set under memory
+pressure. A certain amount of anonymous and clean file pages is required by
+the userspace for normal operation. First of all, the userspace needs a
+cache of shared libraries and executable binaries. If the amount of the
+clean file pages falls below a certain level, then thrashing and even
+livelock can take place. The patch provides sysctl knobs for protecting the
+working set (anonymous and clean file pages) under memory pressure.
+Protection of clean file pages may be used to prevent thrashing and
+reducing I/O under memory pressure. Hard protection of clean file pages may
+be used to avoid high latency and prevent livelock in near-OOM conditions.
 
 The vm.anon_min_kbytes sysctl knob provides *hard* protection of anonymous
-pages. The anonymous pages on the current node won't be reclaimed under
-memory pressure when their amount is below vm.anon_min_kbytes. The default
-value is defined by CONFIG_ANON_MIN_KBYTES (suggested 0 in Kconfig).
+pages. The anonymous pages on the current node won't be reclaimed under any
+conditions when their amount is below vm.anon_min_kbytes. The default value
+is defined by CONFIG_ANON_MIN_KBYTES (suggested 0 in Kconfig).
 
 The vm.clean_low_kbytes sysctl knob provides *best-effort* protection of
 clean file pages. The clean file pages on the current node won't be
@@ -43,7 +46,7 @@ Signed-off-by: Alexey Avramov <hakavlad@inbox.lv>
  5 files changed, 220 insertions(+)
 
 diff --git a/Documentation/admin-guide/sysctl/vm.rst b/Documentation/admin-guide/sysctl/vm.rst
-index f455fa00c..c87ec53e9 100644
+index f455fa00c..39e355cd7 100644
 --- a/Documentation/admin-guide/sysctl/vm.rst
 +++ b/Documentation/admin-guide/sysctl/vm.rst
 @@ -25,7 +25,10 @@ files can be found in mm/swap.c.
@@ -65,7 +68,7 @@ index f455fa00c..c87ec53e9 100644
 +===============
 +
 +This knob provides *hard* protection of anonymous pages. The anonymous pages
-+on the current node won't be reclaimed under memory pressure when their amount
++on the current node won't be reclaimed under any conditions when their amount
 +is below vm.anon_min_kbytes.
 +
 +The default value is defined by CONFIG_ANON_MIN_KBYTES.
@@ -164,7 +167,7 @@ index afad08596..2fb1ef4e6 100644
  		.data		= &sysctl_user_reserve_kbytes,
  		.maxlen		= sizeof(sysctl_user_reserve_kbytes),
 diff --git a/mm/Kconfig b/mm/Kconfig
-index 390165ffb..74d5966b4 100644
+index 390165ffb..9e4ad505d 100644
 --- a/mm/Kconfig
 +++ b/mm/Kconfig
 @@ -122,6 +122,51 @@ config SPARSEMEM_VMEMMAP
@@ -178,7 +181,7 @@ index 390165ffb..74d5966b4 100644
 +	help
 +	  The vm.anon_min_kbytes sysctl knob provides *hard* protection
 +	  of anonymous pages. The anonymous pages on the current node won't be
-+	  reclaimed under memory pressure when their amount is below
++	  reclaimed under any conditions when their amount is below
 +	  vm.anon_min_kbytes.
 +
 +config CLEAN_LOW_KBYTES
@@ -220,7 +223,7 @@ index 390165ffb..74d5966b4 100644
  	bool
  
 diff --git a/mm/vmscan.c b/mm/vmscan.c
-index 7b4e31eac..59524b75b 100644
+index 7b4e31eac..06cb46d83 100644
 --- a/mm/vmscan.c
 +++ b/mm/vmscan.c
 @@ -120,6 +120,25 @@ struct scan_control {
@@ -294,7 +297,7 @@ index 7b4e31eac..59524b75b 100644
  		}
  
 +		/*
-+		 * Hard protection of working set.
++		 * Hard protection of anonymous and clean file pages.
 +		 */
 +		if (file) {
 +			if (sc->clean_below_min)
