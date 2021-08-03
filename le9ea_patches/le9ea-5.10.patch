@@ -1,6 +1,6 @@
-From e44b9500373a137902fbc56b532811b24f020340 Mon Sep 17 00:00:00 2001
+From 1f7ad15077e90a0c10c106a0926d53e3a5b0778c Mon Sep 17 00:00:00 2001
 From: Alexey Avramov <hakavlad@inbox.lv>
-Date: Tue, 3 Aug 2021 23:40:17 +0900
+Date: Wed, 4 Aug 2021 00:35:24 +0900
 Subject: [PATCH] mm/vmscan: add sysctl knobs for protecting the working set
 
 The kernel does not provide a way to protect the working set under memory
@@ -223,7 +223,7 @@ index 390165ffb..9e4ad505d 100644
  	bool
  
 diff --git a/mm/vmscan.c b/mm/vmscan.c
-index 7b4e31eac..06cb46d83 100644
+index 7b4e31eac..b3a7d844c 100644
 --- a/mm/vmscan.c
 +++ b/mm/vmscan.c
 @@ -120,6 +120,25 @@ struct scan_control {
@@ -329,7 +329,7 @@ index 7b4e31eac..06cb46d83 100644
 +
 +		sc->anon_below_min = reclaimable_anon < sysctl_anon_min_kbytes;
 +	} else {
-+		sc->anon_below_min = false;
++		sc->anon_below_min = 0;
 +	}
 +
 +	/*
@@ -356,8 +356,8 @@ index 7b4e31eac..06cb46d83 100644
 +		sc->clean_below_low = clean < sysctl_clean_low_kbytes;
 +		sc->clean_below_min = clean < sysctl_clean_min_kbytes;
 +	} else {
-+		sc->clean_below_low = false;
-+		sc->clean_below_min = false;
++		sc->clean_below_low = 0;
++		sc->clean_below_min = 0;
 +	}
 +
  	shrink_node_memcgs(pgdat, sc);
