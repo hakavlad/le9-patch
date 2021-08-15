@@ -15,27 +15,33 @@ Protection of clean file pages (page cache) may be used to prevent thrashing, re
 
 — https://bugs.launchpad.net/ubuntu/+source/linux/+bug/159356/comments/89
 
-Original le9 patches protected active file pages. Current versions (le9db) protect clean file pages (`Active(file)` + `Inactive(file)` + `Isolated(file)` - `Dirty`).
+Original le9 patches protected active file pages. Current versions (le9eb) allow to protect the specified amount of clean file pages (`Active(file)` + `Inactive(file)` + `Isolated(file)` - `Dirty`) and anonymous pages.
 
-## le9db patches
+# le9eb patch
 
-The patches provide sysctl knobs for protecting the specified amount of clean file pages (CFP) under memory pressure.
+The kernel does not provide a way to protect the [working set](https://en.wikipedia.org/wiki/Working_set) under memory pressure. A certain amount of anonymous and clean file pages is required by the userspace for normal operation. First of all, the userspace needs a cache of shared libraries and executable binaries. If the amount of the clean file pages falls below a certain level, then [thrashing](https://en.wikipedia.org/wiki/Thrashing_(computer_science)) and even [livelock](https://en.wikipedia.org/wiki/Deadlock#Livelock) can take place.
 
-The kernel does not have a mechanism for selectively protecting clean file pages. A certain amount of the CFP is required by the userspace for normal operation. First of all, you need a cache of shared libraries and executable files. If the volume of the CFP cache falls below a certain level, thrashing and even livelock occurs.
+The patch provides sysctl knobs for protecting the working set (anonymous and clean file pages) under memory pressure.
 
-Protection of CFP may be used to prevent thrashing and reducing I/O under memory pressure. Hard protection of CFP may be used to avoid high latency and prevent livelock in near-OOM conditions. The patch provides sysctl knobs for protecting the specified amount of clean file cache under memory pressure.
+The `vm.anon_min_kbytes` sysctl knob provides *hard* protection of anonymous pages. The anonymous pages on the on the current node won't be reclaimed under any conditions when their amount is below `vm.anon_min_kbytes`. This knob may be used to prevent excessive swap thrashing when anonymous memory is low (for example, when memory is going to be overfilled by compressed data of zram module).
 
-The `vm.clean_low_kbytes` sysctl knob provides *best-effort* protection of CFP. The CFP on the current node won't be reclaimed under memory pressure when their amount is below `vm.clean_low_kbytes` *unless* we threaten to OOM or have no free swap space or vm.swappiness=0. Setting it to a high value may result in a early eviction of anonymous pages into the swap space by attempting to hold the protected amount of clean file pages in memory. The default value is defined by `CONFIG_CLEAN_LOW_KBYTES`.
+The `vm.clean_low_kbytes` sysctl knob provides *best-effort* protection of clean file pages. The clean file pages on the current node won't be reclaimed under memory pressure when their amount is below `vm.clean_low_kbytes` *unless* we threaten to OOM or have no free swap space or vm.swappiness=0. Protection of clean file pages using this knob may be used when swapping is still possible to
+- prevent disk I/O thrashing under memory pressure;
+- improve performance in disk cache-bound tasks under memory pressure.
 
-The `vm.clean_min_kbytes` sysctl knob provides *hard* protection of CFP. The CFP on the current node won't be reclaimed under memory pressure when their amount is below `vm.clean_min_kbytes`. Setting it to a high value may result in a early out-of-memory condition due to the inability to reclaim the protected amount of CFP when other types of pages cannot be reclaimed. The default value is defined by `CONFIG_CLEAN_MIN_KBYTES`.
+The `vm.clean_min_kbytes` sysctl knob provides *hard* protection of clean file pages. The clean file pages on the current node won't be reclaimed under memory pressure when their amount is below `vm.clean_min_kbytes`. Hard protection of clean file pages using this knob may be used to
+- prevent disk I/O thrashing under memory pressure even with no swap space;
+- improve performance in disk cache-bound tasks under memory pressure;
+- avoid high latency and prevent livelock in near-OOM conditions.
 
-- `le9db-4.14.patch` may be correctly applied to vanilla Linux 4.14;
-- `le9db-4.19.patch` may be correctly applied to vanilla Linux 4.19;
-- `le9db-5.4.patch` may be correctly applied to vanilla Linux 5.4;
-- `le9db-5.10.patch` may be correctly applied to vanilla Linux 5.10—5.13;
-- `le9db-5.14-rc1.patch` may be correctly applied to vanilla Linux 5.14-rc1.
+`le9eb` patches provide three sysctl knobs with 0 values and does not protect the working set by default (`CONFIG_ANON_MIN_KBYTES=0`, `CONFIG_CLEAN_LOW_KBYTES=0`, `CONFIG_CLEAN_MIN_KBYTES=0`).
 
-`le9db` patches provide two sysctl knobs with 0 values and does not protect clean file pages by default (`CONFIG_CLEAN_LOW_KBYTES=0`, `CONFIG_CLEAN_MIN_KBYTES=0`).
+- `le9eb-4.14.patch` may be correctly applied to vanilla Linux 4.14;
+- `le9eb-4.19.patch` may be correctly applied to vanilla Linux 4.19;
+- `le9eb-5.4.patch` may be correctly applied to vanilla Linux 5.4;
+- `le9eb-5.10.patch` may be correctly applied to vanilla Linux 5.10—5.13;
+- `le9eb-5.13-rc2-MGLRU.patch` may be correctly applied to Linux 5.13 with [mgLRU patchset](https://lore.kernel.org/lkml/20210520065355.2736558-1-yuzhao@google.com/) applied (note that enabling mgLRU disables le9 effects);
+- `le9eb-5.14-rc1.patch` may be correctly applied to vanilla Linux 5.14-rc1.
 
 ## Effects
 
