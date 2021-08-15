@@ -1,5 +1,5 @@
 
-# Protect clean file pages under memory pressure
+# Add sysctl knobs for protecting the working set
 
 Protection of clean file pages (page cache) may be used to prevent thrashing, reducing I/O under memory pressure, avoid high latency and prevent livelock in near-OOM conditions. The current le9 patches provide two sysctl knobs for soft and hard protection of clean file pages. The current le9 patches are based on patches that were originally created by Mandeep Singh Baines (2010) and Marcus Linsner (2018-2019). Let's give the floor to the original founders:
 
