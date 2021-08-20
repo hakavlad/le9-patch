@@ -5,7 +5,7 @@ The kernel does not provide a way to protect the [working set](https://en.wikipe
 
 The patch provides sysctl knobs for protecting the working set (anonymous and clean file pages) under memory pressure.
 
-The `vm.anon_min_kbytes` sysctl knob provides *hard* protection of anonymous pages. The anonymous pages on the on the current node won't be reclaimed under any conditions when their amount is below `vm.anon_min_kbytes`. This knob may be used to prevent excessive swap thrashing when anonymous memory is low (for example, when memory is going to be overfilled by compressed data of zram module).
+The `vm.anon_min_kbytes` sysctl knob provides *hard* protection of anonymous pages. The anonymous pages on the current node won't be reclaimed under any conditions when their amount is below `vm.anon_min_kbytes`. This knob may be used to prevent excessive swap thrashing when anonymous memory is low (for example, when memory is going to be overfilled by compressed data of zram module).
 
 The `vm.clean_low_kbytes` sysctl knob provides *best-effort* protection of clean file pages. The clean file pages on the current node won't be reclaimed under memory pressure when their amount is below `vm.clean_low_kbytes` *unless* we threaten to OOM or have no free swap space or vm.swappiness=0. Protection of clean file pages using this knob may be used when swapping is still possible to
 - prevent disk I/O thrashing under memory pressure;

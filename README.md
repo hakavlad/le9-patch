@@ -1,7 +1,7 @@
 
 # Add sysctl knobs for protecting the working set
 
-Protection of clean file pages (page cache) may be used to prevent thrashing, reducing I/O under memory pressure, avoid high latency and prevent livelock in near-OOM conditions. The current le9 patches provide two sysctl knobs for soft and hard protection of clean file pages. The current le9 patches are based on patches that were originally created by Mandeep Singh Baines (2010) and Marcus Linsner (2018-2019). Let's give the floor to the original founders:
+Protection of clean file pages (page cache) may be used to prevent thrashing, reducing I/O under memory pressure, avoid high latency and prevent livelock in near-OOM conditions. The current le9 patches are based on patches that were originally created by Mandeep Singh Baines (2010) and Marcus Linsner (2018-2019). Let's give the floor to the original founders:
 
 > On ChromiumOS, we do not use swap. When memory is low, the only way to free memory is to reclaim pages from the file list. This results in a lot of thrashing under low memory conditions. We see the system become unresponsive for minutes before it eventually OOMs. We also see very slow browser tab switching under low memory. Instead of an unresponsive system, we'd really like the kernel to OOM as soon as it starts to thrash. If it can't keep the working set in memory, then OOM. Losing one of many tabs is a better behaviour for the user than an unresponsive system.
 
@@ -15,7 +15,7 @@ Protection of clean file pages (page cache) may be used to prevent thrashing, re
 
 — https://bugs.launchpad.net/ubuntu/+source/linux/+bug/159356/comments/89
 
-Original le9 patches protected active file pages. Current versions (le9eb) allow to protect the specified amount of clean file pages (`Active(file)` + `Inactive(file)` + `Isolated(file)` - `Dirty`) and anonymous pages.
+Original le9 patches (by Marcus Linsner) protected active file pages. Current versions (le9eb) allow to protect the specified amount of clean file pages (`Active(file)` + `Inactive(file)` + `Isolated(file)` - `Dirty`) and anonymous pages.
 
 # le9eb patch
 
@@ -23,7 +23,7 @@ The kernel does not provide a way to protect the [working set](https://en.wikipe
 
 The patch provides sysctl knobs for protecting the working set (anonymous and clean file pages) under memory pressure.
 
-The `vm.anon_min_kbytes` sysctl knob provides *hard* protection of anonymous pages. The anonymous pages on the on the current node won't be reclaimed under any conditions when their amount is below `vm.anon_min_kbytes`. This knob may be used to prevent excessive swap thrashing when anonymous memory is low (for example, when memory is going to be overfilled by compressed data of zram module).
+The `vm.anon_min_kbytes` sysctl knob provides *hard* protection of anonymous pages. The anonymous pages on the current node won't be reclaimed under any conditions when their amount is below `vm.anon_min_kbytes`. This knob may be used to prevent excessive swap thrashing when anonymous memory is low (for example, when memory is going to be overfilled by compressed data of zram module).
 
 The `vm.clean_low_kbytes` sysctl knob provides *best-effort* protection of clean file pages. The clean file pages on the current node won't be reclaimed under memory pressure when their amount is below `vm.clean_low_kbytes` *unless* we threaten to OOM or have no free swap space or vm.swappiness=0. Protection of clean file pages using this knob may be used when swapping is still possible to
 - prevent disk I/O thrashing under memory pressure;
