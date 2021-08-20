@@ -1,6 +1,6 @@
-From ab1267331d380888a0d2cdf8205d7297e6945f50 Mon Sep 17 00:00:00 2001
+From 64b20ec6627b7ad6b819237d6b714bd8b0b1e9df Mon Sep 17 00:00:00 2001
 From: Alexey Avramov <hakavlad@inbox.lv>
-Date: Sun, 15 Aug 2021 17:38:58 +0900
+Date: Sat, 21 Aug 2021 04:53:33 +0900
 Subject: [PATCH] mm/vmscan: add sysctl knobs for protecting the working set
 
 The kernel does not provide a way to protect the working set under memory
@@ -14,12 +14,12 @@ The patch provides sysctl knobs for protecting the working set (anonymous
 and clean file pages) under memory pressure.
 
 The vm.anon_min_kbytes sysctl knob provides *hard* protection of anonymous
-pages. The anonymous pages on the on the current node won't be reclaimed
-under any conditions when their amount is below vm.anon_min_kbytes. This
-knob may be used to prevent excessive swap thrashing when anonymous
-memory is low (for example, when memory is going to be overfilled by
-compressed data of zram module). The default value is defined by
-CONFIG_ANON_MIN_KBYTES (suggested 0 in Kconfig).
+pages. The anonymous pages on the current node won't be reclaimed under any
+conditions when their amount is below vm.anon_min_kbytes. This knob may be
+used to prevent excessive swap thrashing when anonymous memory is low (for
+example, when memory is going to be overfilled by compressed data of zram
+module). The default value is defined by CONFIG_ANON_MIN_KBYTES (suggested
+0 in Kconfig).
 
 The vm.clean_low_kbytes sysctl knob provides *best-effort* protection of
 clean file pages. The clean file pages on the current node won't be
@@ -53,7 +53,7 @@ Signed-off-by: Alexey Avramov <hakavlad@inbox.lv>
  5 files changed, 239 insertions(+)
 
 diff --git a/Documentation/admin-guide/sysctl/vm.rst b/Documentation/admin-guide/sysctl/vm.rst
-index 64aeee100..6d9b07eeb 100644
+index 64aeee100..7d0973f42 100644
 --- a/Documentation/admin-guide/sysctl/vm.rst
 +++ b/Documentation/admin-guide/sysctl/vm.rst
 @@ -25,7 +25,10 @@ files can be found in mm/swap.c.
@@ -75,15 +75,15 @@ index 64aeee100..6d9b07eeb 100644
 +===============
 +
 +This knob provides *hard* protection of anonymous pages. The anonymous pages
-+on the on the current node won't be reclaimed under any conditions when their
-+amount is below vm.anon_min_kbytes.
++on the current node won't be reclaimed under any conditions when their amount
++is below vm.anon_min_kbytes.
 +
 +This knob may be used to prevent excessive swap thrashing when anonymous
 +memory is low (for example, when memory is going to be overfilled by
 +compressed data of zram module).
 +
-+Setting this value too high (up to MemTotal and higher) can result in
-+inability to swap and can lead to early OOM under memory pressure.
++Setting this value too high (close to MemTotal) can result in inability to
++swap and can lead to early OOM under memory pressure.
 +
 +The default value is defined by CONFIG_ANON_MIN_KBYTES.
 +
@@ -185,7 +185,7 @@ index b6f2f35d0..8655c8a10 100644
  		.data		= &sysctl_user_reserve_kbytes,
  		.maxlen		= sizeof(sysctl_user_reserve_kbytes),
 diff --git a/mm/Kconfig b/mm/Kconfig
-index a5dae9a7e..5379fd16a 100644
+index a5dae9a7e..5efbe4451 100644
 --- a/mm/Kconfig
 +++ b/mm/Kconfig
 @@ -126,6 +126,67 @@ config SPARSEMEM_VMEMMAP
@@ -201,13 +201,13 @@ index a5dae9a7e..5379fd16a 100644
 +	  This option sets the default value for vm.anon_min_kbytes sysctl knob.
 +
 +	  The vm.anon_min_kbytes sysctl knob provides *hard* protection of
-+	  anonymous pages. The anonymous pages on the on the current node won't
-+	  be reclaimed under any conditions when their amount is below
++	  anonymous pages. The anonymous pages on the current node won't be
++	  reclaimed under any conditions when their amount is below
 +	  vm.anon_min_kbytes. This knob may be used to prevent excessive swap
 +	  thrashing when anonymous memory is low (for example, when memory is
 +	  going to be overfilled by compressed data of zram module).
 +
-+	  Setting this value too high (up to MemTotal and higher) can result in
++	  Setting this value too high (close to MemTotal) can result in
 +	  inability to swap and can lead to early OOM under memory pressure.
 +
 +config CLEAN_LOW_KBYTES
