@@ -16,7 +16,7 @@ The `vm.clean_min_kbytes` sysctl knob provides *hard* protection of clean file p
 - improve performance in disk cache-bound tasks under memory pressure;
 - avoid high latency and prevent livelock in near-OOM conditions.
 
-`le9eb` patches provide three sysctl knobs with 0 values and does not protect the working set by default (`CONFIG_ANON_MIN_KBYTES=0`, `CONFIG_CLEAN_LOW_KBYTES=0`, `CONFIG_CLEAN_MIN_KBYTES=0`).
+`le9ec` patches provide three sysctl knobs (`vm.anon_min_kbytes`, `vm.clean_low_kbytes`, `vm.clean_min_kbytes`) with zero values and does not protect the working set by default (`CONFIG_ANON_MIN_KBYTES=0`, `CONFIG_CLEAN_LOW_KBYTES=0`, `CONFIG_CLEAN_MIN_KBYTES=0`). You can specify other values during kernel build, or change the knob values on the fly.
 
 - `le9ec-4.9.patch` may be correctly applied to vanilla Linux 4.9;
 - `le9ec-4.14.patch` may be correctly applied to vanilla Linux 4.14;
