@@ -25,12 +25,12 @@ The patch provides sysctl knobs for protecting the working set (anonymous and cl
 
 The `vm.anon_min_kbytes` sysctl knob provides *hard* protection of anonymous pages. The anonymous pages on the current node won't be reclaimed under any conditions when their amount is below `vm.anon_min_kbytes`. This knob may be used to prevent excessive swap thrashing when anonymous memory is low (for example, when memory is going to be overfilled by compressed data of zram module).
 
-The `vm.clean_low_kbytes` sysctl knob provides *best-effort* protection of clean file pages. The clean file pages on the current node won't be reclaimed under memory pressure when their amount is below `vm.clean_low_kbytes` *unless* we threaten to OOM. Protection of clean file pages using this knob may be used when swapping is still possible to
+The `vm.clean_low_kbytes` sysctl knob provides *best-effort* protection of clean file pages. The file pages on the current node won't be reclaimed under memory pressure when the amount of clean file pages is below vm.clean_low_kbytes *unless* we threaten to OOM. Protection of clean file pages using this knob may be used when swapping is still possible to
 - prevent disk I/O thrashing under memory pressure;
 - improve performance in disk cache-bound tasks under memory pressure.
 
-The `vm.clean_min_kbytes` sysctl knob provides *hard* protection of clean file pages. The clean file pages on the current node won't be reclaimed under memory pressure when their amount is below `vm.clean_min_kbytes`. Hard protection of clean file pages using this knob may be used to
-- prevent disk I/O thrashing under memory pressure even with no swap space;
+The `vm.clean_min_kbytes` sysctl knob provides *hard* protection of clean file pages. The file pages on the current node won't be reclaimed under memory pressure when the amount of clean file pages is below vm.clean_min_kbytes. Hard protection of clean file pages using this knob may be used to
+- prevent disk I/O thrashing under memory pressure even with no free swap space;
 - improve performance in disk cache-bound tasks under memory pressure;
 - avoid high latency and prevent livelock in near-OOM conditions.
 

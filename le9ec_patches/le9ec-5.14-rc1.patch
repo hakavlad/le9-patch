@@ -1,6 +1,6 @@
-From fe0314658ba80dc47a5c19de78f628945cce45ea Mon Sep 17 00:00:00 2001
+From aa81b6d65a02ee892a6a60102b66ded4323cb792 Mon Sep 17 00:00:00 2001
 From: Alexey Avramov <hakavlad@inbox.lv>
-Date: Sat, 21 Aug 2021 23:09:57 +0900
+Date: Tue, 24 Aug 2021 03:00:55 +0900
 Subject: [PATCH] mm/vmscan: add sysctl knobs for protecting the working set
 
 The kernel does not provide a way to protect the working set under memory
@@ -22,8 +22,8 @@ module). The default value is defined by CONFIG_ANON_MIN_KBYTES (suggested
 0 in Kconfig).
 
 The vm.clean_low_kbytes sysctl knob provides *best-effort* protection of
-clean file pages. The clean file pages on the current node won't be
-reclaimed under memory pressure when their amount is below
+clean file pages. The file pages on the current node won't be reclaimed
+under memory pressure when the amount of clean file pages is below
 vm.clean_low_kbytes *unless* we threaten to OOM. Protection of clean file
 pages using this knob may be used when swapping is still possible to
   - prevent disk I/O thrashing under memory pressure;
@@ -32,10 +32,11 @@ The default value is defined by CONFIG_CLEAN_LOW_KBYTES (suggested 0 in
 Kconfig).
 
 The vm.clean_min_kbytes sysctl knob provides *hard* protection of clean
-file pages. The clean file pages on the current node won't be reclaimed
-under memory pressure when their amount is below vm.clean_min_kbytes.
-Hard protection of clean file pages using this knob may be used to
-  - prevent disk I/O thrashing under memory pressure even with no swap
+file pages. The file pages on the current node won't be reclaimed under
+memory pressure when the amount of clean file pages is below
+vm.clean_min_kbytes. Hard protection of clean file pages using this knob
+may be used to
+  - prevent disk I/O thrashing under memory pressure even with no free swap
     space;
   - improve performance in disk cache-bound tasks under memory pressure;
   - avoid high latency and prevent livelock in near-OOM conditions.
@@ -44,15 +45,15 @@ Kconfig).
 
 Signed-off-by: Alexey Avramov <hakavlad@inbox.lv>
 ---
- Documentation/admin-guide/sysctl/vm.rst | 66 +++++++++++++++++++++++
+ Documentation/admin-guide/sysctl/vm.rst | 66 ++++++++++++++++++++++++
  include/linux/mm.h                      |  4 ++
  kernel/sysctl.c                         | 21 ++++++++
- mm/Kconfig                              | 61 ++++++++++++++++++++++
- mm/vmscan.c                             | 92 +++++++++++++++++++++++++++++++++
- 5 files changed, 244 insertions(+)
+ mm/Kconfig                              | 63 +++++++++++++++++++++++
+ mm/vmscan.c                             | 91 +++++++++++++++++++++++++++++++++
+ 5 files changed, 245 insertions(+)
 
 diff --git a/Documentation/admin-guide/sysctl/vm.rst b/Documentation/admin-guide/sysctl/vm.rst
-index 003d5cc37..31b122453 100644
+index 003d5cc37..608c43254 100644
 --- a/Documentation/admin-guide/sysctl/vm.rst
 +++ b/Documentation/admin-guide/sysctl/vm.rst
 @@ -25,6 +25,9 @@ files can be found in mm/swap.c.
@@ -89,9 +90,9 @@ index 003d5cc37..31b122453 100644
 +clean_low_kbytes
 +================
 +
-+This knob provides *best-effort* protection of clean file pages. The clean file
-+pages on the current node won't be reclaimed under memory pressure when their
-+amount is below vm.clean_low_kbytes *unless* we threaten to OOM.
++This knob provides *best-effort* protection of clean file pages. The file pages
++on the current node won't be reclaimed under memory pressure when the amount of
++clean file pages is below vm.clean_low_kbytes *unless* we threaten to OOM.
 +
 +Protection of clean file pages using this knob may be used when swapping is
 +still possible to
@@ -108,12 +109,12 @@ index 003d5cc37..31b122453 100644
 +clean_min_kbytes
 +================
 +
-+This knob provides *hard* protection of clean file pages. The clean file pages
-+on the current node won't be reclaimed under memory pressure when their amount
-+is below vm.clean_min_kbytes.
++This knob provides *hard* protection of clean file pages. The file pages on the
++current node won't be reclaimed under memory pressure when the amount of clean
++file pages is below vm.clean_min_kbytes.
 +
 +Hard protection of clean file pages using this knob may be used to
-+  - prevent disk I/O thrashing under memory pressure even with no swap space;
++  - prevent disk I/O thrashing under memory pressure even with no free swap space;
 +  - improve performance in disk cache-bound tasks under memory pressure;
 +  - avoid high latency and prevent livelock in near-OOM conditions.
 +
@@ -190,10 +191,10 @@ index 272f4a272..d9266fd77 100644
  		.data		= &sysctl_user_reserve_kbytes,
  		.maxlen		= sizeof(sysctl_user_reserve_kbytes),
 diff --git a/mm/Kconfig b/mm/Kconfig
-index 40a9bfcd5..4eb29f477 100644
+index 40a9bfcd5..307555b71 100644
 --- a/mm/Kconfig
 +++ b/mm/Kconfig
-@@ -89,6 +89,67 @@ config SPARSEMEM_VMEMMAP
+@@ -89,6 +89,69 @@ config SPARSEMEM_VMEMMAP
  	  pfn_to_page and page_to_pfn operations.  This is the most
  	  efficient option when sufficient kernel resources are available.
 
@@ -224,13 +225,14 @@ index 40a9bfcd5..4eb29f477 100644
 +	  This option sets the default value for vm.clean_low_kbytes sysctl knob.
 +
 +	  The vm.clean_low_kbytes sysctl knob provides *best-effort*
-+	  protection of clean file pages. The clean file pages on the current
-+	  node won't be reclaimed under memory pressure when their amount is
-+	  below vm.clean_low_kbytes *unless* we threaten to OOM. Protection of
-+	  clean file pages using this knob may be used when swapping is still
-+	  possible to
++	  protection of clean file pages. The file pages on the current node
++	  won't be reclaimed under memory pressure when the amount of clean file
++	  pages is below vm.clean_low_kbytes *unless* we threaten to OOM.
++	  Protection of clean file pages using this knob may be used when
++	  swapping is still possible to
 +	    - prevent disk I/O thrashing under memory pressure;
-+	    - improve performance in disk cache-bound tasks under memory pressure.
++	    - improve performance in disk cache-bound tasks under memory
++	      pressure.
 +
 +	  Setting it to a high value may result in a early eviction of anonymous
 +	  pages into the swap space by attempting to hold the protected amount
@@ -244,14 +246,15 @@ index 40a9bfcd5..4eb29f477 100644
 +	help
 +	  This option sets the default value for vm.clean_min_kbytes sysctl knob.
 +
-+	  The vm.clean_min_kbytes sysctl knob provides *hard* protection
-+	  of clean file pages. The clean file pages on the current node won't be
-+	  reclaimed under memory pressure when their amount is below
-+	  vm.clean_min_kbytes. Hard protection of clean file pages using this
-+	  knob may be used to
-+	    - prevent disk I/O thrashing under memory pressure even with
-+	      no swap space;
-+	    - improve performance in disk cache-bound tasks under memory pressure;
++	  The vm.clean_min_kbytes sysctl knob provides *hard* protection of
++	  clean file pages. The file pages on the current node won't be
++	  reclaimed under memory pressure when the amount of clean file pages is
++	  below vm.clean_min_kbytes. Hard protection of clean file pages using
++	  this knob may be used to
++	    - prevent disk I/O thrashing under memory pressure even with no free
++	      swap space;
++	    - improve performance in disk cache-bound tasks under memory
++	      pressure;
 +	    - avoid high latency and prevent livelock in near-OOM conditions.
 +
 +	  Setting it to a high value may result in a early out-of-memory condition
@@ -262,35 +265,26 @@ index 40a9bfcd5..4eb29f477 100644
  	bool
 
 diff --git a/mm/vmscan.c b/mm/vmscan.c
-index 4620df62f..1a2f00b1e 100644
+index 4620df62f..b85679d28 100644
 --- a/mm/vmscan.c
 +++ b/mm/vmscan.c
-@@ -118,6 +118,24 @@ struct scan_control {
+@@ -118,6 +118,15 @@ struct scan_control {
  	/* The file pages on the current node are dangerously low */
  	unsigned int file_is_tiny:1;
 
-+	/*
-+	 * The anonymous pages on the current node won't be reclaimed when
-+	 * their amount is below vm.anon_min_kbytes.
-+	 */
++	/* The anonymous pages on the current node are below vm.anon_min_kbytes */
 +	unsigned int anon_below_min:1;
 +
-+	/*
-+	 * The clean file pages on the current node won't be reclaimed when
-+	 * their amount is below vm.clean_low_kbytes *unless* we threaten to OOM.
-+	 */
++	/* The clean file pages on the current node are below vm.clean_low_kbytes */
 +	unsigned int clean_below_low:1;
 +
-+	/*
-+	 * The clean file pages on the current node won't be reclaimed when
-+	 * their amount is below vm.clean_min_kbytes.
-+	 */
++	/* The clean file pages on the current node are below vm.clean_min_kbytes */
 +	unsigned int clean_below_min:1;
 +
  	/* Allocation order */
  	s8 order;
 
-@@ -164,6 +182,10 @@ struct scan_control {
+@@ -164,6 +173,10 @@ struct scan_control {
  #define prefetchw_prev_lru_page(_page, _base, _field) do { } while (0)
  #endif
 
@@ -301,7 +295,7 @@ index 4620df62f..1a2f00b1e 100644
  /*
   * From 0 .. 200.  Higher means more swappy.
   */
-@@ -2495,6 +2517,15 @@ static void get_scan_count(struct lruvec *lruvec, struct scan_control *sc,
+@@ -2495,6 +2508,15 @@ static void get_scan_count(struct lruvec *lruvec, struct scan_control *sc,
  	}
 
  	/*
@@ -317,17 +311,25 @@ index 4620df62f..1a2f00b1e 100644
  	 * If there is enough inactive page cache, we do not reclaim
  	 * anything from the anonymous working right now.
  	 */
-@@ -2630,6 +2661,17 @@ static void get_scan_count(struct lruvec *lruvec, struct scan_control *sc,
+@@ -2630,6 +2652,25 @@ static void get_scan_count(struct lruvec *lruvec, struct scan_control *sc,
  			BUG();
  		}
 
 +		/*
-+		 * Hard protection of anonymous and clean file pages.
++		 * Hard protection of the working set.
 +		 */
 +		if (file) {
++			/*
++			 * Don't reclaim file pages when the amount of
++			 * clean file pages is below vm.clean_min_kbytes.
++			 */
 +			if (sc->clean_below_min)
 +				scan = 0;
 +		} else {
++			/*
++			 * Don't reclaim anonymous pages when their
++			 * amount is below vm.anon_min_kbytes.
++			 */
 +			if (sc->anon_below_min)
 +				scan = 0;
 +		}
@@ -335,7 +337,7 @@ index 4620df62f..1a2f00b1e 100644
  		nr[lru] = scan;
  	}
  }
-@@ -2819,6 +2861,54 @@ static inline bool should_continue_reclaim(struct pglist_data *pgdat,
+@@ -2819,6 +2860,54 @@ static inline bool should_continue_reclaim(struct pglist_data *pgdat,
  	return inactive_lru_pages > pages_for_compaction;
  }
 
@@ -390,7 +392,7 @@ index 4620df62f..1a2f00b1e 100644
  static void shrink_node_memcgs(pg_data_t *pgdat, struct scan_control *sc)
  {
  	struct mem_cgroup *target_memcg = sc->target_mem_cgroup;
-@@ -2980,6 +3070,8 @@ static void shrink_node(pg_data_t *pgdat, struct scan_control *sc)
+@@ -2980,6 +3069,8 @@ static void shrink_node(pg_data_t *pgdat, struct scan_control *sc)
  			anon >> sc->priority;
  	}
 
