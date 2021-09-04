@@ -82,13 +82,17 @@ No data. Testing is encouraged. Please report your results [here](https://github
 
 ## le9 and Multigenerational LRU Framework
 
-Enabling [multi-generational LRU](https://lwn.net/Articles/856931/) disables le9 effects. `vm.clean_low_kbytes` and `vm.clean_min_kbytes` have no effect when mg-LRU is enabled. le9 [modifies](https://github.com/hakavlad/le9-patch/blob/main/le9db_patches/le9db-5.10.patch#L229) `get_scan_count()` to protect clean cache. mg-LRU doesn't use `get_scan_count()`. [mg-lru-helper](https://github.com/hakavlad/mg-lru-helper) can be used to easily manage mg-LRU (enable, disable, get status).
+- le9 modifies `get_scan_count()` to protect the working set. 
+- Multigenerational LRU doesn't use `get_scan_count()`. 
+- Enabling [multi-generational LRU](https://lwn.net/Articles/856931/) disables le9 effects. 
+- `vm.anon_min_kbytes`, `vm.clean_low_kbytes` and `vm.clean_min_kbytes` have no effect when mg-LRU is enabled. 
+- [mg-lru-helper](https://github.com/hakavlad/mg-lru-helper) can be used to easily manage mg-LRU (enable, disable, get status).
 
 ## How to get it
 
-- [pf-kernel](https://gitlab.com/post-factum/pf-kernel/-/wikis/README) provides the file pages protection (with own le9 implementation) by default since [v5.10-pf2](https://gitlab.com/post-factum/pf-kernel/-/tags/v5.10-pf2);
-- [linux-xanmod](https://xanmod.org/) provides the file pages protection (with le9db patch) by default since [5.12.3-xanmod1](https://github.com/xanmod/linux/releases/tag/5.12.3-xanmod1) ([commit](https://github.com/xanmod/linux/commit/97ffb31447b75448602985423b86f733a9c2957b)) and [5.10.36-xanmod1](https://github.com/xanmod/linux/releases/tag/5.10.36-xanmod1) ([commit](https://github.com/xanmod/linux/commit/b7017d8260928025f7b603e382b5d47c10fa0a3b)).
-- [zen-kernel](https://github.com/zen-kernel/zen-kernel) provides le9 since [v5.12.18](https://github.com/zen-kernel/zen-kernel/releases/tag/v5.12.18-lqx1) ([commit](https://github.com/zen-kernel/zen-kernel/commit/dbbf02a75be3593647fc6ed866b99540e3b8ea9b)). Cache protection may not work by default due to mg-LRU enabled.
+- [pf-kernel](https://gitlab.com/post-factum/pf-kernel/-/wikis/README) provides the working set protection (with own implementation) by default since [v5.10-pf2](https://gitlab.com/post-factum/pf-kernel/-/tags/v5.10-pf2);
+- [linux-xanmod](https://xanmod.org/) provides the working set protection by default since [5.12.3-xanmod1](https://github.com/xanmod/linux/releases/tag/5.12.3-xanmod1) ([commit](https://github.com/xanmod/linux/commit/97ffb31447b75448602985423b86f733a9c2957b)) and [5.10.36-xanmod1](https://github.com/xanmod/linux/releases/tag/5.10.36-xanmod1) ([commit](https://github.com/xanmod/linux/commit/b7017d8260928025f7b603e382b5d47c10fa0a3b)).
+- [zen-kernel](https://github.com/zen-kernel/zen-kernel) provides the working set protection since [v5.12.18](https://github.com/zen-kernel/zen-kernel/releases/tag/v5.12.18-lqx1) ([commit](https://github.com/zen-kernel/zen-kernel/commit/dbbf02a75be3593647fc6ed866b99540e3b8ea9b)). The working set protection disabled by default due to multigenerational LRU enabled.
 
 ## Resources
 
