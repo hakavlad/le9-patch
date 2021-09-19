@@ -1,6 +1,6 @@
-From d6737d2c187f9145a7d292fa4224f8669cecf35e Mon Sep 17 00:00:00 2001
+From f65da05a0d0a8bf50807d6e6ed9adbc881ca0526 Mon Sep 17 00:00:00 2001
 From: Alexey Avramov <hakavlad@inbox.lv>
-Date: Sun, 19 Sep 2021 02:24:06 +0900
+Date: Mon, 20 Sep 2021 03:01:01 +0900
 Subject: [PATCH] mm/vmscan: add sysctl knobs for protecting the working set
 
 The kernel does not provide a way to protect the working set under memory
@@ -280,7 +280,7 @@ index 40a9bfcd5..dbee1b166 100644
  	bool
 
 diff --git a/mm/vmscan.c b/mm/vmscan.c
-index eeae2f6bc..382accdca 100644
+index eeae2f6bc..a0744bf71 100644
 --- a/mm/vmscan.c
 +++ b/mm/vmscan.c
 @@ -121,6 +121,17 @@ struct scan_control {
@@ -382,8 +382,8 @@ index eeae2f6bc..382accdca 100644
 
  	get_scan_count(lruvec, sc, nr);
 
-+	if (sc->clean_below_min && sc->priority < DEF_PRIORITY - 2 &&
-+		!nr[LRU_INACTIVE_ANON] && !nr[LRU_ACTIVE_ANON]) {
++	if (sc->clean_below_min && !nr[LRU_INACTIVE_ANON] && !nr[LRU_ACTIVE_ANON] &&
++		sc->priority < DEF_PRIORITY - 2 && !current_is_kswapd()) {
 +		sc->zero_lru_reclaim_count++;
 +		// pr_info("zero_lru_reclaim_count: %i\n", sc->zero_lru_reclaim_count);
 +
