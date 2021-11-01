@@ -43,7 +43,8 @@ The `vm.clean_min_kbytes` sysctl knob provides *hard* protection of clean file p
 - `le9ec-5.10.patch` may be correctly applied to vanilla Linux 5.10—5.13;
 - `le9ec-5.13-rc2-MGLRU.patch` may be correctly applied to Linux 5.13 with [mgLRU patchset v3](https://lore.kernel.org/lkml/20210520065355.2736558-1-yuzhao@google.com/) applied;
 - `le9ec-5.14-rc6-MGLRU.patch` may be correctly applied to Linux 5.14 with [mgLRU patchset v4](https://lore.kernel.org/lkml/20210818063107.2696454-1-yuzhao@google.com/) applied;
-- `le9ec-5.14.patch` may be correctly applied to vanilla Linux 5.14.
+- `le9ec-5.14.patch` may be correctly applied to vanilla Linux 5.14;
+- `le9ec-5.15.patch` may be correctly applied to vanilla Linux 5.15.
 
 ## Effects
 
@@ -82,10 +83,10 @@ No data. Testing is encouraged. Please report your results [here](https://github
 
 ## le9 and Multigenerational LRU Framework
 
-- le9 modifies `get_scan_count()` to protect the working set. 
-- Multigenerational LRU doesn't use `get_scan_count()`. 
-- Enabling [multi-generational LRU](https://lwn.net/Articles/856931/) disables le9 effects. 
-- `vm.anon_min_kbytes`, `vm.clean_low_kbytes` and `vm.clean_min_kbytes` have no effect when mg-LRU is enabled. 
+- le9 modifies `get_scan_count()` to protect the working set.
+- Multigenerational LRU doesn't use `get_scan_count()`.
+- Enabling [multi-generational LRU](https://lwn.net/Articles/856931/) disables le9 effects.
+- `vm.anon_min_kbytes`, `vm.clean_low_kbytes` and `vm.clean_min_kbytes` have no effect when mg-LRU is enabled.
 - [mg-lru-helper](https://github.com/hakavlad/mg-lru-helper) can be used to easily manage mg-LRU (enable, disable, get status).
 
 ## How to get it
