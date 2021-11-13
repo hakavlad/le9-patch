@@ -44,7 +44,8 @@ The `vm.clean_min_kbytes` sysctl knob provides *hard* protection of clean file p
 - `le9ec-5.13-rc2-MGLRU.patch` may be correctly applied to Linux 5.13 with [mgLRU patchset v3](https://lore.kernel.org/lkml/20210520065355.2736558-1-yuzhao@google.com/) applied;
 - `le9ec-5.14-rc6-MGLRU.patch` may be correctly applied to Linux 5.14 with [mgLRU patchset v4](https://lore.kernel.org/lkml/20210818063107.2696454-1-yuzhao@google.com/) applied;
 - `le9ec-5.14.patch` may be correctly applied to vanilla Linux 5.14;
-- `le9ec-5.15.patch` may be correctly applied to vanilla Linux 5.15.
+- `le9ec-5.15.patch` may be correctly applied to vanilla Linux 5.15;
+- `le9ec-5.15-MGLRU.patch` may be correctly applied to Linux 5.15 with [mgLRU patchset v5](https://lore.kernel.org/lkml/20211111041510.402534-1-yuzhao@google.com/) applied.
 
 ## Effects
 
@@ -52,6 +53,8 @@ The `vm.clean_min_kbytes` sysctl knob provides *hard* protection of clean file p
 - Improving performance in I/O bound tasks under memory pressure;
 - OOM killer comes faster (with hard protection);
 - Fast system reclaiming after OOM (with hard protection).
+
+Note that the effects depend on the sysctl knob values.
 
 ## Testing
 
@@ -93,7 +96,7 @@ No data. Testing is encouraged. Please report your results [here](https://github
 
 - [pf-kernel](https://gitlab.com/post-factum/pf-kernel/-/wikis/README) provides the working set protection (with own implementation) by default since [v5.10-pf2](https://gitlab.com/post-factum/pf-kernel/-/tags/v5.10-pf2);
 - [linux-xanmod](https://xanmod.org/) provides the working set protection by default since [5.12.3-xanmod1](https://github.com/xanmod/linux/releases/tag/5.12.3-xanmod1) ([commit](https://github.com/xanmod/linux/commit/97ffb31447b75448602985423b86f733a9c2957b)) and [5.10.36-xanmod1](https://github.com/xanmod/linux/releases/tag/5.10.36-xanmod1) ([commit](https://github.com/xanmod/linux/commit/b7017d8260928025f7b603e382b5d47c10fa0a3b)).
-- [zen-kernel](https://github.com/zen-kernel/zen-kernel) provides the working set protection since [v5.12.18](https://github.com/zen-kernel/zen-kernel/releases/tag/v5.12.18-lqx1) ([commit](https://github.com/zen-kernel/zen-kernel/commit/dbbf02a75be3593647fc6ed866b99540e3b8ea9b)). The working set protection disabled by default due to multigenerational LRU enabled.
+- [zen-kernel](https://github.com/zen-kernel/zen-kernel) provides the working set protection since [v5.12.18](https://github.com/zen-kernel/zen-kernel/releases/tag/v5.12.18-lqx1) ([commit](https://github.com/zen-kernel/zen-kernel/commit/dbbf02a75be3593647fc6ed866b99540e3b8ea9b)). Note that the protection of the working set provided by the le9 patch is disabled when Multigenerational LRU Framework is enabled (MG-LRU can provide the working set protection in another way).
 
 ## Resources
 
