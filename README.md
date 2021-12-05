@@ -76,9 +76,9 @@ Please report your results [here](https://github.com/hakavlad/le9-patch/issues/4
 - `MemAvailable` may be calculated incorrectly (protected `vm.clean_min_kbytes` value cannot be reclaimed);
 - Hard protection of file pages may invoke `Fatal IO error 11` [#5](https://github.com/hakavlad/le9-patch/issues/5) and even `kernel: Oops` [#6](https://github.com/hakavlad/le9-patch/issues/6) with DRM/i915 driver. [Disabling](https://github.com/hakavlad/disable-i915-gem-shrinker) DRM/i915 GEM shrinker can prevent this.
 
-## Need to review
+## Review at LKML
 
-These patches need to be reviewed by linux-mm peoples.
+- v1 (le9ec): https://lore.kernel.org/lkml/20211130201652.2218636d@mail.inbox.lv/
 
 ## What about non-x86?
 
@@ -101,9 +101,7 @@ No data. Testing is encouraged. Please report your results [here](https://github
 ## Resources
 
 - RFC: vmscan: add min_filelist_kbytes sysctl for protecting the working set (2010)
-    - https://lore.kernel.org/linux-mm/20101028191523.GA14972@google.com/
-    - https://lore.kernel.org/patchwork/patch/222042/
-    - https://lkml.org/lkml/2010/10/28/289/
+    - https://lore.kernel.org/lkml/20101028191523.GA14972@google.com/
 - CHROMIUM: vmscan: add min_filelist_kbytes sysctl for protecting the working set (2020) https://chromium.googlesource.com/chromiumos/third_party/kernel-next/+/545e2917dbd863760a51379de8c26631e667c563%5E%21/
 - le9 main thread https://web.archive.org/web/20191018023405/https://gist.github.com/constantoverride/84eba764f487049ed642eb2111a20830
 - When DMA is disabled system freeze on high memory usage (since 2007) https://bugs.launchpad.net/ubuntu/+source/linux/+bug/159356
