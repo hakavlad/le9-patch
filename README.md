@@ -9,7 +9,7 @@ Protection of clean file pages (page cache) may be used to prevent thrashing, re
 
 > With this patch and min_filelist_kbytes set to 50000, I see very little block layer activity during low memory. The system stays responsive under low memory and browser tab switching is fast. Eventually, a process a gets killed by OOM. Without this patch, the system gets wedged for minutes before it eventually OOMs.
 
-— https://lore.kernel.org/patchwork/patch/222042/
+— https://lore.kernel.org/lkml/20101028191523.GA14972@google.com/
 
 > The attached kernel patch (applied on top of 4.18.5) that I've tried, almost completely eliminates the disk thrashing (the constant reading of executable (and .so) files on every context switch) associated with freezing the OS and so, with this patch, the OOM-killer is triggered within a maximum of 1 second when it is needed, rather than, without this patch, freeze the OS for minutes (or just a long time, it may even auto reboot depending on your kernel .config options set to panic (reboot) on hang after xx seconds) with constant disk reading well before OOM-killer gets triggered.
 
@@ -94,9 +94,9 @@ No data. Testing is encouraged. Please report your results [here](https://github
 
 ## How to get it
 
-- [pf-kernel](https://gitlab.com/post-factum/pf-kernel/-/wikis/README) provides the working set protection (with own implementation) by default since [v5.10-pf2](https://gitlab.com/post-factum/pf-kernel/-/tags/v5.10-pf2);
 - [linux-xanmod](https://xanmod.org/) provides the working set protection by default since [5.12.3-xanmod1](https://github.com/xanmod/linux/releases/tag/5.12.3-xanmod1) ([commit](https://github.com/xanmod/linux/commit/97ffb31447b75448602985423b86f733a9c2957b)) and [5.10.36-xanmod1](https://github.com/xanmod/linux/releases/tag/5.10.36-xanmod1) ([commit](https://github.com/xanmod/linux/commit/b7017d8260928025f7b603e382b5d47c10fa0a3b)).
 - [zen-kernel](https://github.com/zen-kernel/zen-kernel) provides the working set protection since [v5.12.18](https://github.com/zen-kernel/zen-kernel/releases/tag/v5.12.18-lqx1) ([commit](https://github.com/zen-kernel/zen-kernel/commit/dbbf02a75be3593647fc6ed866b99540e3b8ea9b)). Note that the protection of the working set provided by the le9 patch is disabled when Multigenerational LRU Framework is enabled (MG-LRU can provide the working set protection in another way).
+- [pf-kernel](https://gitlab.com/post-factum/pf-kernel/-/wikis/README) provides the working set protection (with own implementation) by default since [v5.10-pf2](https://gitlab.com/post-factum/pf-kernel/-/tags/v5.10-pf2). MGLRU enabled by default since 5.15. So, le9 may not work by default.
 
 ## Resources
 
