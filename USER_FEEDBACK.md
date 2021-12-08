@@ -12,8 +12,9 @@
 > Find the video links showing its great resilience, in the project page.
 > The behavior can be enabled/disabled and configured by sysctl tunables, meaning that there seems to be no compatibility cost to adopt the patch.
 
--- firelzrd, https://forum.xanmod.org/thread-4102-post-7529.html#pid7529
+— firelzrd, [forum.xanmod.org](https://forum.xanmod.org/thread-4102-post-7529.html#pid7529)
 
+---
 
 > As far as I've been testing it out, the result is brilliant.
 
@@ -65,5 +66,4 @@
 > In short, XanMod with the le9 patch has transformed a machine from 2006 that was usable but unsafe with XP into a comfortably usable and safe computing system with Mint XFCE 20.2. I can’t thank you enough for this. Seriously, this has saved me from having to buy a new laptop, and has given me so much joy in being able to use something that would otherwise go into a landfill. It’s a win for me and a win for the environment. 
 
 -- KansaKilla, https://www.phoronix.com/forums/forum/software/general-linux-open-source/1267300-le9-strives-to-make-linux-very-usable-on-systems-with-small-amounts-of-ram/page8#post1268100
-
 
