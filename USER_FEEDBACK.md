@@ -24,8 +24,9 @@
 
 > With this patch I now set my vm.swappiness = 1 to keep as much working set as possible on memory, and it works just fine.
 
--- firelzrd, https://forum.xanmod.org/thread-4102-post-7531.html#pid7531
+— firelzrd, [forum.xanmod.org](https://forum.xanmod.org/thread-4102-post-7531.html#pid7531)
 
+---
 
 > In my humble opinion, le9 series isn't about helping server administrators coordinate their resource plans, but meant to address the problem that is making the operating system wrongfully breakable.
 
@@ -36,28 +37,33 @@
 
 > And I believe that le9's modification to the memory manager's behavior just does it perfectly.
 
--- firelzrd, https://forum.xanmod.org/thread-4102-post-7603.html#pid7603
+— firelzrd, [forum.xanmod.org](https://forum.xanmod.org/thread-4102-post-7603.html#pid7603)
 
+---
 
 > I find it especially egregious that so much work has to go into userspace daemons to nudge the kernel OOM killer to do its job; it just seems so wrong to dedicate something as fundamental as memory management to a userspace process. I firmly believe that no condition should ever lead to a frozen system (even if the kernel is still technically running behind the scenes), and blaming the user for overloading it doesn't solve the fundamental issue of the kernel's bad handling of non-optimal conditions.
 
--- sb56637, https://www.phoronix.com/forums/forum/software/general-linux-open-source/1267300-le9-strives-to-make-linux-very-usable-on-systems-with-small-amounts-of-ram/page2#post1267331
+— sb56637, [www.phoronix.com](https://www.phoronix.com/forums/forum/software/general-linux-open-source/1267300-le9-strives-to-make-linux-very-usable-on-systems-with-small-amounts-of-ram/page2#post1267331)
 
+---
 
 > This doesn't look like a hack to me. It seems to be a fairly simple and effective change that actually eliminates the root cause of these stalls. I hope it makes mainline.
 
--- brent, https://www.phoronix.com/forums/forum/software/general-linux-open-source/1267300-le9-strives-to-make-linux-very-usable-on-systems-with-small-amounts-of-ram/page4#post1267387
+— brent, [www.phoronix.com](https://www.phoronix.com/forums/forum/software/general-linux-open-source/1267300-le9-strives-to-make-linux-very-usable-on-systems-with-small-amounts-of-ram/page4#post1267387)
 
+---
 
 > Either way, killing some processes is obviously preferable to locking up the whole system in endless thrashing (which is equivalent to killing all processes).
 
--- intelfx, https://www.phoronix.com/forums/forum/software/general-linux-open-source/1267300-le9-strives-to-make-linux-very-usable-on-systems-with-small-amounts-of-ram/page5#post1267436
+— intelfx, [www.phoronix.com](https://www.phoronix.com/forums/forum/software/general-linux-open-source/1267300-le9-strives-to-make-linux-very-usable-on-systems-with-small-amounts-of-ram/page5#post1267436)
 
+---
 
 > I tried the patch by installing the Linux Mint ISO that is on ValdikSS's website on a netbook-class laptop with 2 Gb of RAM (and a painfully slow hard drive) and couldn't believe my eyes. What was previously an unusable system when running a browser (in my case Firefox) is now apparently perfectly fine. I didn't open 37 tabs, but enough of them for casual, every day browsing and it kept going.
 
--- tedesign, https://www.phoronix.com/forums/forum/software/general-linux-open-source/1267300-le9-strives-to-make-linux-very-usable-on-systems-with-small-amounts-of-ram/page7#post1267789
+— tedesign, [www.phoronix.com](https://www.phoronix.com/forums/forum/software/general-linux-open-source/1267300-le9-strives-to-make-linux-very-usable-on-systems-with-small-amounts-of-ram/page7#post1267789)
 
+---
 
 > I am a near total Linux noob who has been trying to resurrect an old ASUS W3J laptop purchased in 2006 that has a 32 bit intel 945PM chipset that limits the addressable ram. Although there are 2 x 2 GB DDR2 ram modules installed, the system can’t fully use all 4 GB. The RV530 mobility X1600 also allocates some of this ram so that the system has something like 2.8 GB total ram. It has a core2duo T7200 64 bit processor and an IDE 320 GB WD hard drive, so no SSD is possible. I’ve been working on trying out various Linux distributions over the last 3 weeks to replace XP, and they all have had major deficiencies. 32 bit distros don’t allow for the use of modern Firefox, and 64 bit distros use most of the ram very quickly, such that multitasking is not really possible. I happened across ValdikSS’s post and tried out the Mint XFCE 20.2 ISO.
 
@@ -65,5 +71,5 @@
 
 > In short, XanMod with the le9 patch has transformed a machine from 2006 that was usable but unsafe with XP into a comfortably usable and safe computing system with Mint XFCE 20.2. I can’t thank you enough for this. Seriously, this has saved me from having to buy a new laptop, and has given me so much joy in being able to use something that would otherwise go into a landfill. It’s a win for me and a win for the environment. 
 
--- KansaKilla, https://www.phoronix.com/forums/forum/software/general-linux-open-source/1267300-le9-strives-to-make-linux-very-usable-on-systems-with-small-amounts-of-ram/page8#post1268100
+— KansaKilla, [www.phoronix.com](https://www.phoronix.com/forums/forum/software/general-linux-open-source/1267300-le9-strives-to-make-linux-very-usable-on-systems-with-small-amounts-of-ram/page8#post1268100)
 
