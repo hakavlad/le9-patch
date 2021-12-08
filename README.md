@@ -94,6 +94,10 @@ No data. Testing is encouraged. Please report your results [here](https://github
 - `vm.anon_min_kbytes`, `vm.clean_low_kbytes` and `vm.clean_min_kbytes` have no effect when mg-LRU is enabled.
 - [mg-lru-helper](https://github.com/hakavlad/mg-lru-helper) can be used to easily manage mg-LRU (enable, disable, get status).
 
+## User feedback
+
+See [USER_FEEDBACK.md](USER_FEEDBACK.md).
+
 ## How to get it
 
 - [linux-xanmod](https://xanmod.org/) provides the working set protection by default since [5.12.3-xanmod1](https://github.com/xanmod/linux/releases/tag/5.12.3-xanmod1) ([commit](https://github.com/xanmod/linux/commit/97ffb31447b75448602985423b86f733a9c2957b)) and [5.10.36-xanmod1](https://github.com/xanmod/linux/releases/tag/5.10.36-xanmod1) ([commit](https://github.com/xanmod/linux/commit/b7017d8260928025f7b603e382b5d47c10fa0a3b)).
