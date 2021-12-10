@@ -12,7 +12,7 @@
 > Find the video links showing its great resilience, in the project page.
 > The behavior can be enabled/disabled and configured by sysctl tunables, meaning that there seems to be no compatibility cost to adopt the patch.
 
-— firelzrd, [forum.xanmod.org](https://forum.xanmod.org/thread-4102-post-7529.html#pid7529)
+— *firelzrd*, [forum.xanmod.org](https://forum.xanmod.org/thread-4102-post-7529.html#pid7529)
 
 ---
 
@@ -24,7 +24,7 @@
 
 > With this patch I now set my vm.swappiness = 1 to keep as much working set as possible on memory, and it works just fine.
 
-— firelzrd, [forum.xanmod.org](https://forum.xanmod.org/thread-4102-post-7531.html#pid7531)
+— *firelzrd*, [forum.xanmod.org](https://forum.xanmod.org/thread-4102-post-7531.html#pid7531)
 
 ---
 
@@ -37,7 +37,7 @@
 
 > And I believe that le9's modification to the memory manager's behavior just does it perfectly.
 
-— firelzrd, [forum.xanmod.org](https://forum.xanmod.org/thread-4102-post-7603.html#pid7603)
+— *firelzrd*, [forum.xanmod.org](https://forum.xanmod.org/thread-4102-post-7603.html#pid7603)
 
 ---
 
@@ -56,31 +56,31 @@
 > And the PC doesn't crawl like a snail, even with 2+ GB in zram! Without the patch, this PC is barely usable. Please watch the video:
 > https://notes.valdikss.org.ru/linux-for-old-pc-from-2007/en/
 
-— VakdikSS, [lore.kernel.org](https://lore.kernel.org/lkml/2dc51fc8-f14e-17ed-a8c6-0ec70423bf54@valdikss.org.ru/)
+— *VakdikSS*, [lore.kernel.org](https://lore.kernel.org/lkml/2dc51fc8-f14e-17ed-a8c6-0ec70423bf54@valdikss.org.ru/)
 
 ---
 
 > I find it especially egregious that so much work has to go into userspace daemons to nudge the kernel OOM killer to do its job; it just seems so wrong to dedicate something as fundamental as memory management to a userspace process. I firmly believe that no condition should ever lead to a frozen system (even if the kernel is still technically running behind the scenes), and blaming the user for overloading it doesn't solve the fundamental issue of the kernel's bad handling of non-optimal conditions.
 
-— sb56637, [www.phoronix.com](https://www.phoronix.com/forums/forum/software/general-linux-open-source/1267300-le9-strives-to-make-linux-very-usable-on-systems-with-small-amounts-of-ram/page2#post1267331)
+— *sb56637*, [www.phoronix.com](https://www.phoronix.com/forums/forum/software/general-linux-open-source/1267300-le9-strives-to-make-linux-very-usable-on-systems-with-small-amounts-of-ram/page2#post1267331)
 
 ---
 
 > This doesn't look like a hack to me. It seems to be a fairly simple and effective change that actually eliminates the root cause of these stalls. I hope it makes mainline.
 
-— brent, [www.phoronix.com](https://www.phoronix.com/forums/forum/software/general-linux-open-source/1267300-le9-strives-to-make-linux-very-usable-on-systems-with-small-amounts-of-ram/page4#post1267387)
+— *brent*, [www.phoronix.com](https://www.phoronix.com/forums/forum/software/general-linux-open-source/1267300-le9-strives-to-make-linux-very-usable-on-systems-with-small-amounts-of-ram/page4#post1267387)
 
 ---
 
 > Either way, killing some processes is obviously preferable to locking up the whole system in endless thrashing (which is equivalent to killing all processes).
 
-— intelfx, [www.phoronix.com](https://www.phoronix.com/forums/forum/software/general-linux-open-source/1267300-le9-strives-to-make-linux-very-usable-on-systems-with-small-amounts-of-ram/page5#post1267436)
+— *intelfx*, [www.phoronix.com](https://www.phoronix.com/forums/forum/software/general-linux-open-source/1267300-le9-strives-to-make-linux-very-usable-on-systems-with-small-amounts-of-ram/page5#post1267436)
 
 ---
 
 > I tried the patch by installing the Linux Mint ISO that is on ValdikSS's website on a netbook-class laptop with 2 Gb of RAM (and a painfully slow hard drive) and couldn't believe my eyes. What was previously an unusable system when running a browser (in my case Firefox) is now apparently perfectly fine. I didn't open 37 tabs, but enough of them for casual, every day browsing and it kept going.
 
-— tedesign, [www.phoronix.com](https://www.phoronix.com/forums/forum/software/general-linux-open-source/1267300-le9-strives-to-make-linux-very-usable-on-systems-with-small-amounts-of-ram/page7#post1267789)
+— *tedesign*, [www.phoronix.com](https://www.phoronix.com/forums/forum/software/general-linux-open-source/1267300-le9-strives-to-make-linux-very-usable-on-systems-with-small-amounts-of-ram/page7#post1267789)
 
 ---
 
@@ -90,5 +90,5 @@
 
 > In short, XanMod with the le9 patch has transformed a machine from 2006 that was usable but unsafe with XP into a comfortably usable and safe computing system with Mint XFCE 20.2. I can’t thank you enough for this. Seriously, this has saved me from having to buy a new laptop, and has given me so much joy in being able to use something that would otherwise go into a landfill. It’s a win for me and a win for the environment. 
 
-— KansaKilla, [www.phoronix.com](https://www.phoronix.com/forums/forum/software/general-linux-open-source/1267300-le9-strives-to-make-linux-very-usable-on-systems-with-small-amounts-of-ram/page8#post1268100)
+— *KansaKilla*, [www.phoronix.com](https://www.phoronix.com/forums/forum/software/general-linux-open-source/1267300-le9-strives-to-make-linux-very-usable-on-systems-with-small-amounts-of-ram/page8#post1268100)
 
