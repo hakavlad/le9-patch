@@ -41,6 +41,25 @@
 
 ---
 
+This patchset is surprisingly effective and very useful for low-end PC with slow HDD, single-board ARM boards with slow storage, cheap Android smartphones with limited amount of memory. It almost completely prevents thrashing condition and aids in fast OOM killer invocation.
+
+The similar file-locking patch is used in ChromeOS for nearly 10 years but not on stock Linux or Android. It would be very beneficial for lower-performance Android phones, SBCs, old PCs and other devices.
+
+With this patch, combined with zram, I'm able to run the following software on an old office PC from 2007 with __only 2GB of RAM__ simultaneously:
+
+- Firefox with 37 active tabs (all data in RAM, no tab unloading)
+- Discord
+- Skype
+- LibreOffice with the document opened
+- Two PDF files (14 and 47 megabytes in size)
+
+And the PC doesn't crawl like a snail, even with 2+ GB in zram! Without the patch, this PC is barely usable. Please watch the video:
+https://notes.valdikss.org.ru/linux-for-old-pc-from-2007/en/
+
+— VakdikSS, [lore.kernel.org](https://lore.kernel.org/lkml/2dc51fc8-f14e-17ed-a8c6-0ec70423bf54@valdikss.org.ru/)
+
+---
+
 > I find it especially egregious that so much work has to go into userspace daemons to nudge the kernel OOM killer to do its job; it just seems so wrong to dedicate something as fundamental as memory management to a userspace process. I firmly believe that no condition should ever lead to a frozen system (even if the kernel is still technically running behind the scenes), and blaming the user for overloading it doesn't solve the fundamental issue of the kernel's bad handling of non-optimal conditions.
 
 — sb56637, [www.phoronix.com](https://www.phoronix.com/forums/forum/software/general-linux-open-source/1267300-le9-strives-to-make-linux-very-usable-on-systems-with-small-amounts-of-ram/page2#post1267331)
