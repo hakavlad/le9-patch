@@ -68,15 +68,13 @@ Please report your results [here](https://github.com/hakavlad/le9-patch/issues/4
 
 ## Demo
 
+- https://youtu.be/iU3ikgNgp3M - The Linux (with le9 patch) kernel's ability to gracefully handle memory pressure. Boot with `mem=4G`, no swap space, opening chromium tabs, no hangs. The killer comes without delay. This is how le9 patch fixes the problem described [here](https://lore.kernel.org/lkml/d9802b6a-949b-b327-c4a6-3dbca485ec20@gmx.com/).
 - https://youtu.be/c5bAOJkX_uc - Linux 5.9 + `le9i-5.9.patch`, playing supertuxkart with 7 threads `while true; do tail /dev/zero; done` in background. `vm.unevictable_activefile_kbytes=1000000`, `vm.unevictable_inactivefile_kbytes=0`.
 - https://youtu.be/d4Sc80TMEtA - webkit2gtk3 compilation with zram-fraction=1, max-zram-size=8192. No hangs, no heavily freezes, system was responsive for all time during webkit2gtk3 compilation.
-- https://youtu.be/iU3ikgNgp3M - The Linux (with le9 patch) kernel's ability to gracefully handle memory pressure. Boot with `mem=4G`, no swap space, opening chromium tabs, no hangs. The killer comes without delay. This is how le9 patch fixes the problem described [here](https://lore.kernel.org/lkml/d9802b6a-949b-b327-c4a6-3dbca485ec20@gmx.com/).
 
-## Warnings
+## Warning
 
-- These patches were written by an amateur. Use at your own risk;
-- `MemAvailable` may be calculated incorrectly (protected `vm.clean_min_kbytes` value cannot be reclaimed);
-- Hard protection of file pages may invoke `Fatal IO error 11` [#5](https://github.com/hakavlad/le9-patch/issues/5) and even `kernel: Oops` [#6](https://github.com/hakavlad/le9-patch/issues/6) with DRM/i915 driver. [Disabling](https://github.com/hakavlad/disable-i915-gem-shrinker) DRM/i915 GEM shrinker can prevent this.
+- These patches were written by an amateur. Use at your own risk.
 
 ## Review at LKML
 
@@ -100,9 +98,9 @@ See [USER_FEEDBACK.md](USER_FEEDBACK.md).
 
 ## How to get it
 
+- [pf-kernel](https://gitlab.com/post-factum/pf-kernel/-/wikis/README) provides the working set protection (with its own implementation) by default since [v5.10-pf2](https://gitlab.com/post-factum/pf-kernel/-/tags/v5.10-pf2).
 - [linux-xanmod](https://xanmod.org/) provides the working set protection by default since [5.12.3-xanmod1](https://github.com/xanmod/linux/releases/tag/5.12.3-xanmod1) ([commit](https://github.com/xanmod/linux/commit/97ffb31447b75448602985423b86f733a9c2957b)) and [5.10.36-xanmod1](https://github.com/xanmod/linux/releases/tag/5.10.36-xanmod1) ([commit](https://github.com/xanmod/linux/commit/b7017d8260928025f7b603e382b5d47c10fa0a3b)).
 - [zen-kernel](https://github.com/zen-kernel/zen-kernel) provides the working set protection since [v5.12.18](https://github.com/zen-kernel/zen-kernel/releases/tag/v5.12.18-lqx1) ([commit](https://github.com/zen-kernel/zen-kernel/commit/dbbf02a75be3593647fc6ed866b99540e3b8ea9b)). Note that the protection of the working set provided by the le9 patch is disabled when Multigenerational LRU Framework is enabled (MG-LRU can provide the working set protection in another way).
-- [pf-kernel](https://gitlab.com/post-factum/pf-kernel/-/wikis/README) provides the working set protection (with own implementation) by default since [v5.10-pf2](https://gitlab.com/post-factum/pf-kernel/-/tags/v5.10-pf2). MGLRU enabled by default since 5.15. So, le9 may not work by default.
 
 ## Resources
 
