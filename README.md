@@ -77,8 +77,6 @@ Please report your results [here](https://github.com/hakavlad/le9-patch/issues/4
 - https://youtu.be/tsnA6Mx-MpQ - 5.14.3.le9fd, `for i in {1..100}; do (tail /dev/zero &); done`, swap on zram, `MemTotal` = `SwapTotal` = 9.6 GiB.
 - https://youtu.be/1ZwzjxCHFyc - 5.14.2.le9fa, playing SuperTuxKart, 8 terminal emulator windows with `while true; do tail /dev/zero; done`, no swap space, `vm.clean_min_kbytes=260000`, low memory and I/O pressure, no UI freeze. The userspace daemon ([nohang](https://github.com/hakavlad/nohang)) running in the background just checks kmsg for OOM events and sends GUI notifications.
 
-
-
 ## Warning
 
 - These patches were written by an amateur. Use at your own risk.
