@@ -71,9 +71,9 @@ Please report your results [here](https://github.com/hakavlad/le9-patch/issues/4
 - https://youtu.be/iU3ikgNgp3M - The Linux (with le9 patch) kernel's ability to gracefully handle memory pressure. Boot with `mem=4G`, no swap space, opening chromium tabs, no hangs. The killer comes without delay. This is how le9 patch fixes the problem described [here](https://lore.kernel.org/lkml/d9802b6a-949b-b327-c4a6-3dbca485ec20@gmx.com/).
 - https://youtu.be/c5bAOJkX_uc - Linux 5.9 + `le9i-5.9.patch`, playing supertuxkart with 7 threads `while true; do tail /dev/zero; done` in background. `vm.unevictable_activefile_kbytes=1000000`, `vm.unevictable_inactivefile_kbytes=0`.
 - https://youtu.be/d4Sc80TMEtA - webkit2gtk3 compilation with zram-fraction=1, max-zram-size=8192. No hangs, no heavily freezes, system was responsive for all time during webkit2gtk3 compilation.
-- https://youtu.be/ZrLqUWRodh4 - Debian 11 on VM, Linux 5.14 with le9ec patch, no swap space, playing SuperTux while 1000 `tail /dev/zero` started simultaneously:
-    - no freezes with vm.clean_min_kbytes=300000, io pressure closed to zero, memory pressure is moderate, , all `tail` processes was killed in 2 minutes (0:06 - 2:14);
-    - UI hangs with vm.clean_min_kbytes=0 (since 3:40).
+- https://youtu.be/ZrLqUWRodh4 - Debian 11 on VM, Linux 5.14 with `le9ec` patch, no swap space, playing `SuperTux` while 1000 `tail /dev/zero` started simultaneously:
+    - no freezes with `vm.clean_min_kbytes=300000`, io pressure closed to zero, memory pressure is moderate, all `tail` processes was killed in 2 minutes (0:06 - 2:14);
+    - UI hangs with `vm.clean_min_kbytes=0` (since 3:40).
 
 ## Warning
 
