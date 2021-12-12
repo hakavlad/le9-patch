@@ -56,7 +56,7 @@ The `vm.clean_min_kbytes` sysctl knob provides *hard* protection of clean file p
 - OOM killer comes faster (with hard protection);
 - Fast system reclaiming after OOM (with hard protection).
 
-Note that the effects depend on the sysctl knob values.
+Note that the effects depend on the values of the sysctl tunables.
 
 ## Testing
 
