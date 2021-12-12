@@ -75,7 +75,9 @@ Please report your results [here](https://github.com/hakavlad/le9-patch/issues/4
     - No freezes with `vm.clean_min_kbytes=300000`, I/O pressure was closed to zero, memory pressure was moderate (70-80 `some`, 12-17 `full`), all `tail` processes has been killed in 2 minutes (0:06 - 2:14), it's about 8 processes reaped by `oom_reaper` per second;
     - Complete UI freeze without the working set protection (since 3:40).
 - https://youtu.be/tsnA6Mx-MpQ - 5.14.3.le9fd, `for i in {1..100}; do (tail /dev/zero &); done`, swap on zram, `MemTotal` = `SwapTotal` = 9.6 GiB.
-- https://youtu.be/1ZwzjxCHFyc - 5.14.2.le9fa, playing SuperTuxKart, 8 terminal emulator windows with `while true; do tail /dev/zero; done`, no swap space, `vm.clean_min_kbytes=260000`, low memory and I/O pressure, no UI freeze.
+- https://youtu.be/1ZwzjxCHFyc - 5.14.2.le9fa, playing SuperTuxKart, 8 terminal emulator windows with `while true; do tail /dev/zero; done`, no swap space, `vm.clean_min_kbytes=260000`, low memory and I/O pressure, no UI freeze. The userspace daemon ([nohang](https://github.com/hakavlad/nohang)) running in the background just checks kmsg for OOM events and sends GUI notifications.
+
+
 
 ## Warning
 
