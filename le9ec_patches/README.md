@@ -27,7 +27,7 @@ The `vm.clean_min_kbytes` sysctl knob provides *hard* protection of clean file p
 - `le9ec-5.14-rc6-MGLRU.patch` may be correctly applied to Linux 5.14 with [mgLRU patchset v4](https://lore.kernel.org/lkml/20210818063107.2696454-1-yuzhao@google.com/) applied;
 - `le9ec-5.14.patch` may be correctly applied to vanilla Linux 5.14;
 - `le9ec-5.15.patch` may be correctly applied to vanilla Linux 5.15—5.16;
-- `le9ec-5.15-MGLRU.patch` may be correctly applied to Linux 5.15 with [mgLRU patchset v5](https://lore.kernel.org/lkml/20211111041510.402534-1-yuzhao@google.com/) applied.
+- `le9ec-5.15-MGLRU.patch` may be correctly applied to Linux 5.15 with [mgLRU patchset v5](https://lore.kernel.org/lkml/20211111041510.402534-1-yuzhao@google.com/) applied and may be correctly applied to Linux 5.16-rc8 with [mgLRU patchset v6](https://lore.kernel.org/lkml/20220104202227.2903605-1-yuzhao@google.com/) applied.
 
 Note that enabling multigenerational LRU disables le9 effects.
 
