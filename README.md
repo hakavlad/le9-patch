@@ -109,53 +109,5 @@ See [USER_FEEDBACK.md](USER_FEEDBACK.md).
 
 ## Resources
 
-- RFC: vmscan: add min_filelist_kbytes sysctl for protecting the working set (2010)
-    - https://lore.kernel.org/lkml/20101028191523.GA14972@google.com/
-- CHROMIUM: vmscan: add min_filelist_kbytes sysctl for protecting the working set (2020) https://chromium.googlesource.com/chromiumos/third_party/kernel-next/+/545e2917dbd863760a51379de8c26631e667c563%5E%21/
-- le9 main thread https://web.archive.org/web/20191018023405/https://gist.github.com/constantoverride/84eba764f487049ed642eb2111a20830
-- When DMA is disabled system freeze on high memory usage (since 2007) https://bugs.launchpad.net/ubuntu/+source/linux/+bug/159356
-- Let's talk about the elephant in the room - the Linux kernel's inability to gracefully handle low memory pressure
-    - https://lore.kernel.org/lkml/d9802b6a-949b-b327-c4a6-3dbca485ec20@gmx.com/
-    - https://www.phoronix.com/forums/forum/phoronix/general-discussion/1118164-yes-linux-does-bad-in-low-ram-memory-pressure-situations-on-the-desktop
-    - https://news.ycombinator.com/item?id=20620545
-    - https://www.reddit.com/r/linux/comments/cmg48b/lets_talk_about_the_elephant_in_the_room_the/
-- Howto prevent kernel from evicting code pages ever? (to avoid disk thrashing when about to run out of RAM)
-    - https://lore.kernel.org/lkml/CAKYFi-4a=H+vT+vo5s6mpKXAv+0W0pyTj1WtEr6xfjoFVFmtJQ@mail.gmail.com/
-    - https://stackoverflow.com/questions/51927528/how-to-prevent-linux-kernel-from-evicting-file-backed-executable-pages-when-abou
-- How to keep executable code in memory even under memory pressure ? in Linux
-    - https://stackoverflow.com/questions/52067753/how-to-keep-executable-code-in-memory-even-under-memory-pressure-in-linux
-- OOM killer doesn't work properly, leads to a frozen OS https://unix.stackexchange.com/questions/373312/oom-killer-doesnt-work-properly-leads-to-a-frozen-os/458855#458855
-- `le9b.patch` https://launchpadlibrarian.net/386196358/le9b.patch
-- `le9d.patch` https://launchpadlibrarian.net/389887258/le9d.patch, https://lkml.org/lkml/diff/2018/9/10/296/1
-- `le9e.patch` https://web.archive.org/web/20191018064208/https://github.com/howaboutsynergy/q1q/blob/865a6500231aec266bc9d646dfd230908b8676e5/OSes/archlinux/home/user/build/1packages/4used/kernel/linuxgit/le9e.patch
-- `le9g.patch`
-    - https://bugzilla.kernel.org/show_bug.cgi?id=196729#c49
-    - https://www.phoronix.com/forums/forum/phoronix/general-discussion/1118164-yes-linux-does-bad-in-low-ram-memory-pressure-situations-on-the-desktop?p=1119440#post1119440
-- `le9h.patch`
-    - https://web.archive.org/web/20191018023217/https://gist.github.com/howaboutsynergy/04fd9be927835b055ac15b8b64658e85
-    - https://www.phoronix.com/forums/forum/phoronix/general-discussion/1118164-yes-linux-does-bad-in-low-ram-memory-pressure-situations-on-the-desktop?p=1119792#post1119792
-- `le9i.patch` https://web.archive.org/web/20191018023434/https://gist.github.com/howaboutsynergy/cbfa3cc5e8093c26c29f5d411c16e6b1
-- Bug 111601 - regression: deadlock-freeze due to kernel commit aa56a292ce623734ddd30f52d73f527d1f3529b5 + `memfreeze`, `le9i.patch`, `le9h.patch` https://bugs.freedesktop.org/show_bug.cgi?id=111601
-- Merge origin/chromeos-4.19-lowmem https://gitlab.freedesktop.org/seanpaul/dpu-staging/commit/0b992f2dbb044896c3584e10bd5b97cf41e2ec6d
-- https://abf.io/mikhailnov/kernel-desktop-4.15/blob/master/Chromium-OS-low-memory-patchset.patch
-- Discussing protection of file pages with post-factum and mikhailnov - https://www.linux.org.ru/news/kernel/16052362?cid=16055197 and further.
-- How to prevent Linux kernel from evicting file-backed executable pages when about to run out of RAM? (which would otherwise cause disk-thrashing) https://stackoverflow.com/questions/51927528/how-to-prevent-linux-kernel-from-evicting-file-backed-executable-pages-when-abou
-- mm/concepts https://www.kernel.org/doc/html/latest/admin-guide/mm/concepts.html
-- M. Gorman - Understanding the Linux Virtual Memory Manager https://www.kernel.org/doc/gorman/
-- Unevictable LRU Infrastructure https://www.kernel.org/doc/html/latest/vm/unevictable-lru.html
-- Why is kswapd0 running on a computer with no swap? https://askubuntu.com/questions/432809/why-is-kswapd0-running-on-a-computer-with-no-swap/432827
-- This patch looks like it could be merged with mainline. Why don't you try sending it to linux-mm? https://www.phoronix.com/forums/forum/phoronix/general-discussion/1118164-yes-linux-does-bad-in-low-ram-memory-pressure-situations-on-the-desktop/page17#post1120024
-- Ubuntu freeze when low memory https://askubuntu.com/questions/1017884/ubuntu-freeze-when-low-memory
-- How to avoid high latency near OOM situation? https://unix.stackexchange.com/questions/423261/how-to-avoid-high-latency-near-oom-situation
-- System hanging when it runs out of memory https://unix.stackexchange.com/questions/28175/system-hanging-when-it-runs-out-of-memory
-- Can you set a minimum linux disk buffer size? https://serverfault.com/questions/171164/can-you-set-a-minimum-linux-disk-buffer-size
-- Защищаем чистый кэш файлов при нехватке памяти для предотвращения пробуксовки и livelock https://www.linux.org.ru/forum/talks/16255397
-- Убунтята, не проходите мимо: le9 patch добавлен в linux-xanmod https://www.linux.org.ru/forum/general/16334308
-- "le9" Strives To Make Linux Very Usable On Systems With Small Amounts Of RAM https://www.phoronix.com/scan.php?page=news_item&px=le9-Linux-Low-RAM
-- ‘le9’, un parche para mitigar la escasez de RAM en Linux https://www.muylinux.com/2021/07/14/le9-poca-ram-linux/
-- Linux Will Run Even Better On Ancient Hardware, Thanks To The Upcoming Le9 Patch https://fossbytes.com/le9-linux-patch-would-make-linux-better-on-ancient-hardware/
-- Linux for PC from 2007: 37 browser tabs+Discord+Skype with no lag on only 2 GB RAM! https://notes.valdikss.org.ru/linux-for-old-pc-from-2007/en/
-- le9 thread on xanmod forum https://forum.xanmod.org/thread-4102-post-7562.html
-- Нехватка памяти, фризы: OOM KILLER, le9-patch и пр. (puppyrus forum) https://forum.puppyrus.org/index.php?topic=23160.msg178228#msg178228
-- le9 which is used in ROSA Linux https://abf.io/import/kernel-5.10/blob/rosa2021.1/le9pf.diff
+See [RESOURCES.md](RESOURCES.md).
 
