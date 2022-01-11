@@ -104,7 +104,6 @@ See [USER_FEEDBACK.md](USER_FEEDBACK.md).
 ## How to get it
 
 - [linux-xanmod](https://xanmod.org/) provides the working set protection by default since [5.12.3-xanmod1](https://github.com/xanmod/linux/releases/tag/5.12.3-xanmod1) ([commit](https://github.com/xanmod/linux/commit/97ffb31447b75448602985423b86f733a9c2957b)) and [5.10.36-xanmod1](https://github.com/xanmod/linux/releases/tag/5.10.36-xanmod1) ([commit](https://github.com/xanmod/linux/commit/b7017d8260928025f7b603e382b5d47c10fa0a3b)).
-- [zen-kernel](https://github.com/zen-kernel/zen-kernel) provides the working set protection since [v5.12.18](https://github.com/zen-kernel/zen-kernel/releases/tag/v5.12.18-lqx1) ([commit](https://github.com/zen-kernel/zen-kernel/commit/dbbf02a75be3593647fc6ed866b99540e3b8ea9b)). Note that the protection of the working set provided by the le9 patch is disabled when Multigenerational LRU Framework is enabled (MG-LRU can provide the working set protection in another way).
 
 ## Resources
 
