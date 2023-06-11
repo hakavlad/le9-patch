@@ -101,10 +101,6 @@ No data. Testing is encouraged. Please report your results [here](https://github
 
 See [USER_FEEDBACK.md](USER_FEEDBACK.md).
 
-## How to get it
-
-- [linux-xanmod](https://xanmod.org/) provides the working set protection by default since [5.12.3-xanmod1](https://github.com/xanmod/linux/releases/tag/5.12.3-xanmod1) ([commit](https://github.com/xanmod/linux/commit/97ffb31447b75448602985423b86f733a9c2957b)) and [5.10.36-xanmod1](https://github.com/xanmod/linux/releases/tag/5.10.36-xanmod1) ([commit](https://github.com/xanmod/linux/commit/b7017d8260928025f7b603e382b5d47c10fa0a3b)).
-
 ## Resources
 
 See [RESOURCES.md](RESOURCES.md).
